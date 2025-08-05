@@ -1,0 +1,26 @@
+# Node.js
+backend-evidencias/node_modules/
+frontend-evidencias/node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+backend-evidencias/.env
+frontend-evidencias/.env
+
+# Build outputs
+backend-evidencias/dist/
+frontend-evidencias/dist/
+
+# IDE files
+.vscode/
+*.code-workspace
+
+# Docker
+*.dockerignore
+docker-compose.override.yml
+
+# Miscellaneous
+.DS_Store
+Thumbs.db

@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Db@dm1n2025
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - evidencias_net
+
+  backend:
+    build: ./backend-evidencias
+    container_name: api-evidencias
+    environment:
+      - PORT=3001
+      - DB_HOST=db
+      - DB_USER=sa
+      - DB_PASSWORD=Db@dm1n2025
+      - DB_NAME=evidencias_db
+      - DB_PORT=1433
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    networks:
+      - evidencias_net
+
+  frontend:
+    build: ./frontend-evidencias
+    container_name: app-evidencias
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - evidencias_net
+
+volumes:
+  sql_data:
+
+networks:
+  evidencias_net:
