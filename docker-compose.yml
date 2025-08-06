@@ -12,6 +12,20 @@ services:
     networks:
       - evidencias_net
 
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
+    volumes:
+      - ./docker/init.sql:/init.sql
+    entrypoint: >
+      /bin/bash -c "
+        sleep 20 &&
+        /opt/mssql-tools/bin/sqlcmd -S db -U sa -P 'Db@dm1n2025' -i /init.sql
+      "
+    networks:
+      - evidencias_net
+
   backend:
     build: ./backend-evidencias
     container_name: api-evidencias
@@ -25,7 +39,7 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - db
+      - db-init
     networks:
       - evidencias_net
 

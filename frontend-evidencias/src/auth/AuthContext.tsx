@@ -1,12 +1,23 @@
 import { createContext } from 'react';
 
-export type Rol = 'tecnico' | 'coordinador';
+export type Rol = 'tecnico' | 'coordinador' | null;
 
 export interface AuthContextType {
     isAuthenticated: boolean;
     rol: Rol;
-    login: (rol: Rol) => void;
+    username: string | null;
+    token: string | null;
+    login: (username: string, password: string) => Promise<void>;
     logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    isAuthenticated: false,
+    rol: null,
+    username: null,
+    token: null,
+    login: async () => { },
+    logout: () => { }
+});
+
+export default AuthContext;

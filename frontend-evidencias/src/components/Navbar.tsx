@@ -1,29 +1,25 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../auth/useAuth';
 
 const Navbar = () => {
     const [ isOpen, setIsOpen ] = useState(false);
-    const { isAuthenticated, login, logout, rol } = useAuth();
+    const { isAuthenticated, logout, rol } = useAuth();
+    const navigate = useNavigate();
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
-    const MenuLinks = () => (
-        <>
-            <li><Link to="/expediente" className="hover:underline">Registro de Expedientes</Link></li>
-            <li><Link to="/indicio" className="hover:underline">Registro de Indicios</Link></li>
-            {rol === 'coordinador' && (
-                <li><Link to="/revisar" className="hover:underline">Revisar Expedientes</Link></li>
-            )}
-        </>
-    );
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <nav className="bg-blue-800 text-white shadow-md">
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <h1 className="text-xl font-bold">DICRI - Sistema de Evidencias</h1>
 
-                {/* Botón hamburguesa (móvil) */}
+                {/* Botón hamburguesa */}
                 <div className="md:hidden">
                     <button onClick={toggleMenu}>
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,81 +33,75 @@ const Navbar = () => {
                 </div>
 
                 {/* Menú en escritorio */}
-                <ul className="hidden md:flex gap-4 items-center text-sm">
-                    <li><Link to="/" className="hover:underline">Inicio</Link></li>
-                    {isAuthenticated && <MenuLinks />}
-                    <li>
-                        {isAuthenticated ? (
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs italic">Rol: <strong>{rol}</strong></span>
-                                <button
-                                    onClick={logout}
-                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => login('tecnico')}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Iniciar como Técnico
-                                </button>
-                                <button
-                                    onClick={() => login('coordinador')}
-                                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Iniciar como Coordinador
-                                </button>
-                            </div>
-                        )}
-                    </li>
-                </ul>
-            </div>
+                <ul className="hidden md:flex gap-4 text-sm items-center">
+                    <li><Link to="/" className="px-3 py-2 rounded hover:bg-blue-700">Inicio</Link></li>
 
-            {/* Menú móvil */}
-            {isOpen && (
-                <ul className="md:hidden px-4 pb-4 text-sm space-y-2 bg-blue-700">
-                    <li><Link to="/" onClick={toggleMenu}>Inicio</Link></li>
                     {isAuthenticated && (
                         <>
-                            <MenuLinks />
-                            <li className="text-xs italic">Rol: <strong>{rol}</strong></li>
+                            <li><Link to="/expediente" className="px-3 py-2 rounded hover:bg-blue-700">Registro de Expedientes</Link></li>
+                            <li><Link to="/indicio" className="px-3 py-2 rounded hover:bg-blue-700">Registro de Indicios</Link></li>
+                            {rol === 'coordinador' && (
+                                <li><Link to="/revisar" className="px-3 py-2 rounded hover:bg-blue-700">Revisar Expedientes</Link></li>
+                            )}
                             <li>
                                 <button
-                                    onClick={() => {
-                                        logout();
-                                        toggleMenu();
-                                    }}
-                                    className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                                    onClick={handleLogout}
+                                    className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded text-white"
                                 >
                                     Cerrar sesión
                                 </button>
                             </li>
                         </>
                     )}
+
                     {!isAuthenticated && (
-                        <li className="flex flex-col gap-2">
-                            <button
-                                onClick={() => {
-                                    login('tecnico');
-                                    toggleMenu();
-                                }}
-                                className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        <li>
+                            <Link
+                                to="/login"
+                                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white"
                             >
-                                Iniciar como Técnico
-                            </button>
-                            <button
-                                onClick={() => {
-                                    login('coordinador');
-                                    toggleMenu();
-                                }}
-                                className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+                                Iniciar sesión
+                            </Link>
+                        </li>
+                    )}
+                </ul>
+            </div>
+
+            {/* Menú móvil */}
+            {isOpen && (
+                <ul className="md:hidden px-4 pb-4 text-sm space-y-2 bg-blue-700">
+                    <li><Link to="/" onClick={toggleMenu} className="block py-2">Inicio</Link></li>
+
+                    {isAuthenticated && (
+                        <>
+                            <li><Link to="/expediente" onClick={toggleMenu} className="block py-2">Registro de Expedientes</Link></li>
+                            <li><Link to="/indicio" onClick={toggleMenu} className="block py-2">Registro de Indicios</Link></li>
+                            {rol === 'coordinador' && (
+                                <li><Link to="/revisar" onClick={toggleMenu} className="block py-2">Revisar Expedientes</Link></li>
+                            )}
+                            <li>
+                                <button
+                                    onClick={() => {
+                                        toggleMenu();
+                                        handleLogout();
+                                    }}
+                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                                >
+                                    Cerrar sesión
+                                </button>
+                            </li>
+                        </>
+                    )}
+
+                    {!isAuthenticated && (
+                        <li>
+                            <Link
+                                to="/login"
+                                onClick={toggleMenu}
+                                className="block bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-center"
                             >
-                                Iniciar como Coordinador
-                            </button>
+                                Iniciar sesión
+                            </Link>
                         </li>
                     )}
                 </ul>

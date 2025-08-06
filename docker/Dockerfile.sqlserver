@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+
+USER root
+
+# Copiamos el script de inicialización
+COPY init.sql /init.sql
+
+# Copiamos el entrypoint que ejecutará el script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER mssql
+
+ENTRYPOINT [ "/bin/bash", "/entrypoint.sh" ]
