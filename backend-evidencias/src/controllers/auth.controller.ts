@@ -1,19 +1,9 @@
 import { Request, Response } from 'express';
 import { generateToken, verifyToken } from '../auth/jwt.utils';
-import type { Rol } from '../auth/auth.types';
+import bcrypt from 'bcrypt';
+import { getUserByUsername } from '../models/user.model';
 
-interface User {
-    username: string;
-    password: string;
-    rol: Rol;
-}
-
-const users: User[] = [
-    { username: 'tecnico', password: '1234', rol: 'tecnico' },
-    { username: 'coordinador', password: '5678', rol: 'coordinador' },
-];
-
-export const login = (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -24,59 +14,85 @@ export const login = (req: Request, res: Response) => {
         });
     }
 
-    const user = users.find(u => u.username === username && u.password === password);
+    try {
+        const user = await getUserByUsername(username);
 
-    if (!user) {
-        return res.status(401).json({
-            statusCode: 401,
-            status: 'Unauthorized',
-            message: 'Credenciales incorrectas',
+        if (!user) {
+            return res.status(401).json({
+                statusCode: 401,
+                status: 'Unauthorized',
+                message: 'Credenciales incorrectas',
+            });
+        }
+
+        if (!user.activo) {
+            return res.status(403).json({
+                statusCode: 403,
+                status: 'Forbidden',
+                message: 'El usuario está inactivo',
+            });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+        if (!passwordMatch) {
+            return res.status(401).json({
+                statusCode: 401,
+                status: 'Unauthorized',
+                message: 'Credenciales incorrectas',
+            });
+        }
+
+        // Validación de token existente (opcional, por si hay sesión activa)
+        const authHeader = req.headers.authorization;
+        if (authHeader?.startsWith('Bearer ')) {
+            const existingToken = authHeader.split(' ')[ 1 ];
+            try {
+                const decoded = verifyToken(existingToken);
+
+                if (
+                    typeof decoded === 'object' &&
+                    decoded?.username === user.username &&
+                    decoded?.rol === user.rol
+                ) {
+                    return res.status(200).json({
+                        statusCode: 200,
+                        status: 'OK',
+                        message: 'Ya existe una sesión activa',
+                        user: {
+                            username: user.username,
+                            rol: user.rol,
+                        },
+                        token: existingToken,
+                    });
+                }
+            } catch (err) {
+                console.warn('Token inválido o expirado:', err);
+                // Continuará generando uno nuevo
+            }
+        }
+
+        const newToken = generateToken({ username: user.username, rol: user.rol });
+
+        return res.status(200).json({
+            statusCode: 200,
+            status: 'OK',
+            message: 'Inicio de sesión exitoso',
+            user: {
+                username: user.username,
+                rol: user.rol,
+            },
+            token: newToken,
+        });
+
+    } catch (error) {
+        console.error('Error en login:', error);
+        return res.status(500).json({
+            statusCode: 500,
+            status: 'ERROR',
+            message: 'Error interno del servidor',
         });
     }
-
-    const authHeader = req.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
-        const existingToken = authHeader.split(' ')[ 1 ];
-
-        try {
-            const decoded = verifyToken(existingToken);
-            if (
-                typeof decoded === 'object' &&
-                decoded &&
-                'username' in decoded &&
-                'rol' in decoded &&
-                decoded.username === user.username &&
-                decoded.rol === user.rol
-            ) {
-                return res.status(200).json({
-                    statusCode: 200,
-                    status: 'OK',
-                    message: 'Ya existe una sesión activa',
-                    user: {
-                        username: user.username,
-                        rol: user.rol,
-                    },
-                    token: existingToken,
-                });
-            }
-        } catch (err) {
-            // Token inválido o expirado, se generará uno nuevo
-            console.warn('Token inválido o expirado:', err);
-        }
-    }
-
-    const newToken = generateToken({ username: user.username, rol: user.rol });
-
-    return res.status(200).json({
-        statusCode: 200,
-        status: 'OK',
-        message: 'Inicio de sesión exitoso',
-        user: {
-            username: user.username,
-            rol: user.rol,
-        },
-        token: newToken,
-    });
 };
 
 export const logout = (_req: Request, res: Response) => {

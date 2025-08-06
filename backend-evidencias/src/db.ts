@@ -1,4 +1,8 @@
 import sql from 'mssql';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const config: sql.config = {
     user: process.env.DB_USER,
@@ -12,7 +16,21 @@ const config: sql.config = {
     }
 };
 
-export const getConnection = async () => {
-    const pool = await sql.connect(config);
-    return pool;
+let pool: sql.ConnectionPool | null = null;
+
+export const getConnection = async (): Promise<sql.ConnectionPool> => {
+    if (pool) {
+        return pool;
+    }
+
+    try {
+        pool = await sql.connect(config);
+        console.log('Conexión a SQL Server establecida correctamente');
+        return pool;
+    } catch (error) {
+        console.error('Error al conectar con SQL Server:', error);
+        throw error;
+    }
 };
+
+export { sql };
