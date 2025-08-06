@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import '../express'; // Asegura que se haya extendido el tipo Request
 import { verifyToken } from './jwt.utils';
-import type { UserPayload } from './auth.types';
 
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;

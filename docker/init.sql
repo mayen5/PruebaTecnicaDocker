@@ -1,3 +1,12 @@
+/*
+    Nombre:          evidencias_db
+    Descripción:     Base de datos principal para el sistema de gestión de evidencias del DICRI.
+    Autor:           Carmelo Mayén
+    Fecha creación:  2025-08-05
+    Versión:         1.0
+    Notas:           Contiene tablas para usuarios, expedientes e indicios.
+*/
+
 -- Crear la base de datos si no existe
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'evidencias_db')
 BEGIN
@@ -8,7 +17,15 @@ GO
 USE evidencias_db;
 GO
 
--- Tabla de usuarios
+
+/*
+    Nombre:          Usuarios
+    Descripción:     Almacena los datos de autenticación y rol de los usuarios del sistema.
+    Autor:           Carmelo Mayén
+    Fecha creación:  2025-08-05
+    Versión:         1.0
+    Notas:           Utiliza campo 'activo' para eliminación lógica.
+*/
 IF OBJECT_ID('dbo.Usuarios', 'U') IS NOT NULL DROP TABLE dbo.Usuarios;
 CREATE TABLE Usuarios (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -19,7 +36,14 @@ CREATE TABLE Usuarios (
 );
 GO
 
--- Tabla de expedientes
+/*
+    Nombre:          Expedientes
+    Descripción:     Registra los expedientes ingresados por técnicos y su estado de revisión.
+    Autor:           Carmelo Mayén
+    Fecha creación:  2025-08-05
+    Versión:         1.0
+    Notas:           Incluye referencia al técnico responsable. Usa 'activo' para eliminación lógica.
+*/
 IF OBJECT_ID('dbo.Expedientes', 'U') IS NOT NULL DROP TABLE dbo.Expedientes;
 CREATE TABLE Expedientes (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -29,11 +53,19 @@ CREATE TABLE Expedientes (
     tecnico_id INT NOT NULL,
     estado NVARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'aprobado', 'rechazado')),
     justificacion NVARCHAR(255),
+    activo BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
 );
 GO
 
--- Tabla de indicios
+/*
+    Nombre:          Indicios
+    Descripción:     Almacena los indicios asociados a cada expediente, incluyendo características físicas.
+    Autor:           Carmelo Mayén
+    Fecha creación:  2025-08-05
+    Versión:         1.0
+    Notas:           Relacionado con expediente y técnico. Incluye campo 'activo' para eliminación lógica.
+*/
 IF OBJECT_ID('dbo.Indicios', 'U') IS NOT NULL DROP TABLE dbo.Indicios;
 CREATE TABLE Indicios (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -45,6 +77,7 @@ CREATE TABLE Indicios (
     ubicacion NVARCHAR(255),
     tecnico_id INT NOT NULL,
     fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
+    activo BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (expediente_id) REFERENCES Expedientes(id),
     FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
 );
@@ -136,7 +169,7 @@ GO
     Descripción:     Actualiza los datos del usuario identificado por su username.
     Autor:           Carmelo Mayén
     Fecha creación:  2025-08-05
-    Versión:         1.1
+    Versión:         1.0
 */
 
 CREATE OR ALTER PROCEDURE SP_UPDATE_UsuarioByUsername
@@ -161,13 +194,44 @@ BEGIN
 END;
 GO
 
+-- =============================================
+-- Nombre:          SP_GET_Usuarios
+-- Descripción:     Devuelve todos los usuarios registrados (activos e inactivos).
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-05
+-- Versión:         1.0
+-- Notas:           Lista los Usuarios.
+-- =============================================
+
+CREATE PROCEDURE SP_GET_Usuarios
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            id,
+            username,
+            password_hash,
+            rol,
+            activo
+        FROM Usuarios;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_Usuarios: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+
 --Procedimiento almacenado para desactivar (eliminar lógicamente) un usuario
 /*
     Nombre:          SP_UPDATE_UsuarioActivoByUsername
     Descripción:     Desactiva (eliminación lógica) al usuario identificado por su username.
     Autor:           Carmelo Mayén
     Fecha creación:  2025-08-05
-    Versión:         1.1
+    Versión:         1.0
 */
 
 CREATE OR ALTER PROCEDURE SP_UPDATE_UsuarioActivoByUsername
@@ -185,6 +249,411 @@ BEGIN
         DECLARE @ErrorMessage NVARCHAR(4000);
         SET @ErrorMessage = ERROR_MESSAGE();
         RAISERROR('Error en SP_DEL_Usuario: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_GET_ExpedienteById
+-- Descripción:     Devuelve los datos de un expediente según su ID, si está activo.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Utilizado para visualizar los detalles de un expediente.
+-- =============================================
+
+CREATE PROCEDURE SP_GET_ExpedienteById
+    @id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        -- Validación del parámetro de entrada
+        IF @id IS NULL OR @id <= 0
+        BEGIN
+            RAISERROR('El ID del expediente debe ser un número válido y mayor que cero.', 16, 1);
+            RETURN;
+        END
+
+        -- Consulta principal
+        SELECT 
+            e.id,
+            e.codigo,
+            e.descripcion,
+            e.fecha_registro,
+            e.tecnico_id,
+            u.username AS tecnico_username,
+            e.estado,
+            e.justificacion,
+            e.activo
+        FROM Expedientes e
+        INNER JOIN Usuarios u ON e.tecnico_id = u.id
+        WHERE e.id = @id AND e.activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_ExpedienteById: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_GET_Expedientes
+-- Descripción:     Devuelve todos los expedientes activos registrados.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Utilizado para listar todos los expedientes activos.
+-- =============================================
+
+CREATE PROCEDURE SP_GET_Expedientes
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            e.id,
+            e.codigo,
+            e.descripcion,
+            e.fecha_registro,
+            e.tecnico_id,
+            u.username AS tecnico_username,
+            e.estado,
+            e.justificacion,
+            e.activo
+        FROM Expedientes e
+        INNER JOIN Usuarios u ON e.tecnico_id = u.id
+        WHERE e.activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_Expedientes: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_INSERT_Expediente
+-- Descripción:     Inserta un nuevo expediente con estado 'pendiente' por defecto.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Utilizado para el registro inicial de expedientes. 
+--                  El estado se define internamente como 'pendiente'.
+-- =============================================
+
+CREATE PROCEDURE SP_INSERT_Expediente
+    @codigo NVARCHAR(50),
+    @descripcion NVARCHAR(255),
+    @tecnico_id INT,
+    @justificacion NVARCHAR(255) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        -- Validaciones básicas
+        IF @codigo IS NULL OR LTRIM(RTRIM(@codigo)) = ''
+        BEGIN
+            RAISERROR('El código del expediente es requerido.', 16, 1);
+            RETURN;
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @tecnico_id AND activo = 1)
+        BEGIN
+            RAISERROR('El técnico proporcionado no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        INSERT INTO Expedientes (codigo, descripcion, tecnico_id, estado, justificacion)
+        VALUES (@codigo, @descripcion, @tecnico_id, 'pendiente', @justificacion);
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_INSERT_Expediente: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+
+-- =============================================
+-- Nombre:          SP_UPDATE_ExpedienteById
+-- Descripción:     Actualiza los campos de un expediente por su ID.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Actualiza descripción, estado, justificación y técnico.
+-- =============================================
+
+CREATE PROCEDURE SP_UPDATE_ExpedienteById
+    @id INT,
+    @descripcion NVARCHAR(255),
+    @estado NVARCHAR(20),
+    @justificacion NVARCHAR(255),
+    @tecnico_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Expedientes WHERE id = @id AND activo = 1)
+        BEGIN
+            RAISERROR('El expediente no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        IF @estado NOT IN ('pendiente', 'aprobado', 'rechazado')
+        BEGIN
+            RAISERROR('El estado proporcionado no es válido.', 16, 1);
+            RETURN;
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @tecnico_id AND activo = 1)
+        BEGIN
+            RAISERROR('El técnico proporcionado no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        UPDATE Expedientes
+        SET descripcion = @descripcion,
+            estado = @estado,
+            justificacion = @justificacion,
+            tecnico_id = @tecnico_id
+        WHERE id = @id AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_UPDATE_ExpedienteById: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_UPDATE_ExpedienteActivoById
+-- Descripción:     Cambia el valor del campo activo de un expediente (eliminación lógica).
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Usado para eliminar/restaurar registros sin borrado físico.
+-- =============================================
+
+CREATE PROCEDURE SP_UPDATE_ExpedienteActivoById
+    @id INT,
+    @activo BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Expedientes WHERE id = @id)
+        BEGIN
+            RAISERROR('El expediente no existe.', 16, 1);
+            RETURN;
+        END
+
+        UPDATE Expedientes
+        SET activo = @activo
+        WHERE id = @id;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_UPDATE_ExpedienteActivoById: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_GET_IndicioById
+-- Descripción:     Devuelve un indicio según su ID.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Incluye solo registros activos.
+-- =============================================
+
+CREATE PROCEDURE SP_GET_IndicioById
+    @id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            id,
+            expediente_id,
+            descripcion,
+            color,
+            tamano,
+            peso,
+            ubicacion,
+            tecnico_id,
+            fecha_registro,
+            activo
+        FROM Indicios
+        WHERE id = @id AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_IndicioById: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_GET_Indicios
+-- Descripción:     Devuelve todos los indicios activos.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           No incluye registros eliminados lógicamente.
+-- =============================================
+
+CREATE PROCEDURE SP_GET_Indicios
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            id,
+            expediente_id,
+            descripcion,
+            color,
+            tamano,
+            peso,
+            ubicacion,
+            tecnico_id,
+            fecha_registro,
+            activo
+        FROM Indicios
+        WHERE activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_Indicios: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_INSERT_Indicio
+-- Descripción:     Inserta un nuevo indicio vinculado a un expediente.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           El campo "activo" se define automáticamente.
+-- =============================================
+
+CREATE PROCEDURE SP_INSERT_Indicio
+    @expediente_id INT,
+    @descripcion NVARCHAR(255),
+    @color NVARCHAR(50),
+    @tamano NVARCHAR(50),
+    @peso DECIMAL(10,2),
+    @ubicacion NVARCHAR(255),
+    @tecnico_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        -- Validación de claves foráneas
+        IF NOT EXISTS (SELECT 1 FROM Expedientes WHERE id = @expediente_id AND activo = 1)
+        BEGIN
+            RAISERROR('El expediente proporcionado no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @tecnico_id AND activo = 1)
+        BEGIN
+            RAISERROR('El técnico proporcionado no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        INSERT INTO Indicios (expediente_id, descripcion, color, tamano, peso, ubicacion, tecnico_id)
+        VALUES (@expediente_id, @descripcion, @color, @tamano, @peso, @ubicacion, @tecnico_id);
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_INSERT_Indicio: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_UPDATE_IndicioById
+-- Descripción:     Actualiza los datos de un indicio según su ID.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Se valida que el registro esté activo antes de actualizar.
+-- =============================================
+
+CREATE PROCEDURE SP_UPDATE_IndicioById
+    @id INT,
+    @descripcion NVARCHAR(255),
+    @color NVARCHAR(50),
+    @tamano NVARCHAR(50),
+    @peso DECIMAL(10,2),
+    @ubicacion NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Indicios WHERE id = @id AND activo = 1)
+        BEGIN
+            RAISERROR('El indicio no existe o está inactivo.', 16, 1);
+            RETURN;
+        END
+
+        UPDATE Indicios
+        SET descripcion = @descripcion,
+            color = @color,
+            tamano = @tamano,
+            peso = @peso,
+            ubicacion = @ubicacion
+        WHERE id = @id;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_UPDATE_IndicioById: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Nombre:          SP_Update_IndicioActivoById
+-- Descripción:     Realiza eliminación lógica del indicio (cambia el estado activo).
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           El cambio es reversible (activo = 1 o 0).
+-- =============================================
+
+CREATE PROCEDURE SP_Update_IndicioActivoById
+    @id INT,
+    @activo BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Indicios WHERE id = @id)
+        BEGIN
+            RAISERROR('El indicio no existe.', 16, 1);
+            RETURN;
+        END
+
+        UPDATE Indicios
+        SET activo = @activo
+        WHERE id = @id;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_Update_IndicioActivoById: %s', 16, 1, @ErrorMessage);
     END CATCH
 END;
 GO

@@ -1,3 +1,4 @@
+/// <reference path="../express.d.ts" />
 import { Request, Response, NextFunction } from 'express';
 
 export const authorizeRoles = (...roles: string[]) => {

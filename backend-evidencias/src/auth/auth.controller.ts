@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { generateToken, verifyToken } from '../auth/jwt.utils';
+import { generateToken, verifyToken } from './jwt.utils';
 import bcrypt from 'bcrypt';
-import { getUserByUsername } from '../models/user.model';
+import { getUserByUsername } from '../modules/usuario/models/user.model';
 
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;

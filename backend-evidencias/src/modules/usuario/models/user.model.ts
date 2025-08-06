@@ -1,5 +1,5 @@
-import { getConnection } from '../db';
-import type { Rol } from '../auth/auth.types';
+import { getConnection } from '../../../db';
+import type { Rol } from '../../../auth/auth.types';
 
 export interface User {
     id?: number;
@@ -33,6 +33,20 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
     };
 };
 
+// Obtener todos los usuarios
+export const getAllUsers = async (): Promise<User[]> => {
+    const pool = await getConnection();
+    const result = await pool.request().execute('SP_GET_Usuarios');
+
+    return result.recordset.map((record: any) => ({
+        id: record.id,
+        username: record.username,
+        password_hash: record.password_hash,
+        rol: record.rol,
+        activo: record.activo === 1
+    }));
+};
+
 // Insertar nuevo usuario
 export const createUser = async (user: User): Promise<void> => {
     const pool = await getConnection();
@@ -54,7 +68,7 @@ export const updateUser = async (user: User): Promise<void> => {
 };
 
 // Eliminar (desactivar) usuario
-export const deleteUser = async (username: string): Promise<void> => {
+export const updateUserStatus = async (username: string): Promise<void> => {
     const pool = await getConnection();
     await pool.request()
         .input('username', username)
