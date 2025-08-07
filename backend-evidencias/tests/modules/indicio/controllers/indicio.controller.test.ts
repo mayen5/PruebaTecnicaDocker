@@ -43,10 +43,13 @@ describe('Indicio Controller', () => {
     test('createIndicioHandler responde con éxito', async () => {
         (indicioModel.insertIndicio as jest.Mock).mockResolvedValue(undefined);
         req.body = {
-            codigo: 'IND-001',
-            descripcion: 'descripcion prueba',
             expediente_id: 1,
-            justificacion: 'justificacion opcional'
+            tecnico_id: 2,
+            descripcion: 'descripcion prueba',
+            color: 'rojo',
+            tamano: 'grande',
+            peso: 10,
+            ubicacion: 'almacen',
         };
         await indicioController.createIndicioHandler(req, res);
         expect(res.status).toHaveBeenCalledWith(201);
@@ -56,9 +59,13 @@ describe('Indicio Controller', () => {
     test('createIndicioHandler responde con error', async () => {
         (indicioModel.insertIndicio as jest.Mock).mockRejectedValue(new Error('DB error'));
         req.body = {
-            codigo: 'IND-001',
+            expediente_id: 1,
+            tecnico_id: 2,
             descripcion: 'descripcion prueba',
-            expediente_id: 1
+            color: 'rojo',
+            tamano: 'grande',
+            peso: 10,
+            ubicacion: 'almacen',
         };
         await indicioController.createIndicioHandler(req, res);
         expect(res.status).toHaveBeenCalledWith(500);
