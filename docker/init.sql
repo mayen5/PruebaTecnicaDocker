@@ -26,14 +26,16 @@ GO
     Versión:         1.0
     Notas:           Utiliza campo 'activo' para eliminación lógica.
 */
-IF OBJECT_ID('dbo.Usuarios', 'U') IS NOT NULL DROP TABLE dbo.Usuarios;
-CREATE TABLE Usuarios (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    username NVARCHAR(50) NOT NULL UNIQUE,
-    password_hash NVARCHAR(255) NOT NULL,
-    rol NVARCHAR(20) NOT NULL CHECK (rol IN ('tecnico', 'coordinador')),
-    activo BIT NOT NULL DEFAULT 1
-);
+IF OBJECT_ID('dbo.Usuarios', 'U') IS NULL
+BEGIN
+    CREATE TABLE Usuarios (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        username NVARCHAR(50) NOT NULL UNIQUE,
+        password_hash NVARCHAR(255) NOT NULL,
+        rol NVARCHAR(20) NOT NULL CHECK (rol IN ('tecnico', 'coordinador')),
+        activo BIT NOT NULL DEFAULT 1
+    );
+END
 GO
 
 /*
@@ -44,18 +46,20 @@ GO
     Versión:         1.0
     Notas:           Incluye referencia al técnico responsable. Usa 'activo' para eliminación lógica.
 */
-IF OBJECT_ID('dbo.Expedientes', 'U') IS NOT NULL DROP TABLE dbo.Expedientes;
-CREATE TABLE Expedientes (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    codigo NVARCHAR(50) UNIQUE NOT NULL,
-    descripcion NVARCHAR(255),
-    fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
-    tecnico_id INT NOT NULL,
-    estado NVARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'aprobado', 'rechazado')),
-    justificacion NVARCHAR(255),
-    activo BIT NOT NULL DEFAULT 1,
-    FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
-);
+IF OBJECT_ID('dbo.Expedientes', 'U') IS NULL
+BEGIN
+    CREATE TABLE Expedientes (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        codigo NVARCHAR(50) UNIQUE NOT NULL,
+        descripcion NVARCHAR(255),
+        fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
+        tecnico_id INT NOT NULL,
+        estado NVARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'aprobado', 'rechazado')),
+        justificacion NVARCHAR(255),
+        activo BIT NOT NULL DEFAULT 1,
+        FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
+    );
+END
 GO
 
 /*
@@ -66,29 +70,37 @@ GO
     Versión:         1.0
     Notas:           Relacionado con expediente y técnico. Incluye campo 'activo' para eliminación lógica.
 */
-IF OBJECT_ID('dbo.Indicios', 'U') IS NOT NULL DROP TABLE dbo.Indicios;
-CREATE TABLE Indicios (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    expediente_id INT NOT NULL,
-    descripcion NVARCHAR(255),
-    color NVARCHAR(50),
-    tamano NVARCHAR(50),
-    peso DECIMAL(10,2),
-    ubicacion NVARCHAR(255),
-    tecnico_id INT NOT NULL,
-    fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
-    activo BIT NOT NULL DEFAULT 1,
-    FOREIGN KEY (expediente_id) REFERENCES Expedientes(id),
-    FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
-);
+IF OBJECT_ID('dbo.Indicios', 'U') IS NULL
+BEGIN
+    CREATE TABLE Indicios (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        expediente_id INT NOT NULL,
+        descripcion NVARCHAR(255),
+        color NVARCHAR(50),
+        tamano NVARCHAR(50),
+        peso DECIMAL(10,2),
+        ubicacion NVARCHAR(255),
+        tecnico_id INT NOT NULL,
+        fecha_registro DATETIME NOT NULL DEFAULT GETDATE(),
+        activo BIT NOT NULL DEFAULT 1,
+        FOREIGN KEY (expediente_id) REFERENCES Expedientes(id),
+        FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
+    );
+END
 GO
 
 -- Insertar usuarios con contraseña encriptada por bcrypt (rounds = 10)
 -- Contraseña: '1234' y '5678'
-INSERT INTO Usuarios (username, password_hash, rol)
-VALUES
-('tecnico', '$2b$10$1zWo2S0AKC7xvxIzsppZA.I47061lFDSsogE39zYZr/TjKNpKxuUy', 'tecnico'),
-('coordinador', '$2b$10$PoSg2CL4ps8nSEaBvtHb2./vyRAD8oaV6x1gr4KgSM9w.DHW6tavm', 'coordinador');
+IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE username = 'tecnico')
+BEGIN
+    INSERT INTO Usuarios (username, password_hash, rol)
+    VALUES ('tecnico', '$2b$10$1zWo2S0AKC7xvxIzsppZA.I47061lFDSsogE39zYZr/TjKNpKxuUy', 'tecnico');
+END
+IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE username = 'coordinador')
+BEGIN
+    INSERT INTO Usuarios (username, password_hash, rol)
+    VALUES ('coordinador', '$2b$10$PoSg2CL4ps8nSEaBvtHb2./vyRAD8oaV6x1gr4KgSM9w.DHW6tavm', 'coordinador');
+END
 GO
 
 --Procedimientos almacenados
@@ -103,6 +115,9 @@ GO
     Notas:           Utilizado para autenticación y validación de roles desde backend.
 */
 
+IF OBJECT_ID('SP_GET_UsuarioByUsername', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_UsuarioByUsername;
+GO
 CREATE PROCEDURE SP_GET_UsuarioByUsername
     @username NVARCHAR(100)
 AS
@@ -142,7 +157,9 @@ GO
     Fecha creación:  2025-08-05
     Versión:         1.0
 */
-
+IF OBJECT_ID('SP_INSERT_Usuario', 'P') IS NOT NULL
+    DROP PROCEDURE SP_INSERT_Usuario;
+GO
 CREATE PROCEDURE SP_INSERT_Usuario
     @username NVARCHAR(100),
     @password_hash NVARCHAR(255),
@@ -172,7 +189,10 @@ GO
     Versión:         1.0
 */
 
-CREATE OR ALTER PROCEDURE SP_UPDATE_UsuarioByUsername
+IF OBJECT_ID('SP_UPDATE_UsuarioByUsername', 'P') IS NOT NULL
+    DROP PROCEDURE SP_UPDATE_UsuarioByUsername;
+GO
+CREATE PROCEDURE SP_UPDATE_UsuarioByUsername
     @username NVARCHAR(100),
     @password_hash NVARCHAR(255),
     @rol NVARCHAR(20)
@@ -203,6 +223,9 @@ GO
 -- Notas:           Lista los Usuarios.
 -- =============================================
 
+IF OBJECT_ID('SP_GET_Usuarios', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_Usuarios;
+GO
 CREATE PROCEDURE SP_GET_Usuarios
 AS
 BEGIN
@@ -234,7 +257,10 @@ GO
     Versión:         1.0
 */
 
-CREATE OR ALTER PROCEDURE SP_UPDATE_UsuarioActivoByUsername
+IF OBJECT_ID('SP_UPDATE_UsuarioActivoByUsername', 'P') IS NOT NULL
+    DROP PROCEDURE SP_UPDATE_UsuarioActivoByUsername;
+GO
+CREATE PROCEDURE SP_UPDATE_UsuarioActivoByUsername
     @username NVARCHAR(100)
 AS
 BEGIN
@@ -242,7 +268,7 @@ BEGIN
 
     BEGIN TRY
         UPDATE Usuarios
-        SET activo = 0
+        SET activo = CASE WHEN activo = 1 THEN 0 ELSE 1 END
         WHERE username = @username;
     END TRY
     BEGIN CATCH
@@ -262,6 +288,9 @@ GO
 -- Notas:           Utilizado para visualizar los detalles de un expediente.
 -- =============================================
 
+IF OBJECT_ID('SP_GET_ExpedienteById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_ExpedienteById;
+GO
 CREATE PROCEDURE SP_GET_ExpedienteById
     @id INT
 AS
@@ -287,9 +316,7 @@ BEGIN
             e.estado,
             e.justificacion,
             e.activo
-        FROM Expedientes e
-        INNER JOIN Usuarios u ON e.tecnico_id = u.id
-        WHERE e.id = @id AND e.activo = 1;
+        FROM Expedientes e;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -307,6 +334,9 @@ GO
 -- Notas:           Utilizado para listar todos los expedientes activos.
 -- =============================================
 
+IF OBJECT_ID('SP_GET_Expedientes', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_Expedientes;
+GO
 CREATE PROCEDURE SP_GET_Expedientes
 AS
 BEGIN
@@ -323,9 +353,7 @@ BEGIN
             e.estado,
             e.justificacion,
             e.activo
-        FROM Expedientes e
-        INNER JOIN Usuarios u ON e.tecnico_id = u.id
-        WHERE e.activo = 1;
+        FROM Expedientes e;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -344,6 +372,9 @@ GO
 --                  El estado se define internamente como 'pendiente'.
 -- =============================================
 
+IF OBJECT_ID('SP_INSERT_Expediente', 'P') IS NOT NULL
+    DROP PROCEDURE SP_INSERT_Expediente;
+GO
 CREATE PROCEDURE SP_INSERT_Expediente
     @codigo NVARCHAR(50),
     @descripcion NVARCHAR(255),
@@ -353,27 +384,30 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    BEGIN TRY
-        -- Validaciones básicas
-        IF @codigo IS NULL OR LTRIM(RTRIM(@codigo)) = ''
-        BEGIN
-            RAISERROR('El código del expediente es requerido.', 16, 1);
-            RETURN;
-        END
+    IF (@codigo IS NULL OR LTRIM(RTRIM(@codigo)) = '')
+    BEGIN
+        RAISERROR('El código del expediente es requerido.', 16, 1);
+        RETURN;
+    END
 
-        IF NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @tecnico_id AND activo = 1)
-        BEGIN
-            RAISERROR('El técnico proporcionado no existe o está inactivo.', 16, 1);
-            RETURN;
-        END
-
-        INSERT INTO Expedientes (codigo, descripcion, tecnico_id, estado, justificacion)
-        VALUES (@codigo, @descripcion, @tecnico_id, 'pendiente', @justificacion);
-    END TRY
-    BEGIN CATCH
-        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
-        RAISERROR('Error en SP_INSERT_Expediente: %s', 16, 1, @ErrorMessage);
-    END CATCH
+    INSERT INTO Expedientes (
+        codigo,
+        descripcion,
+        fecha_registro,
+        tecnico_id,
+        estado,
+        justificacion,
+        activo
+    )
+    VALUES (
+        @codigo,
+        @descripcion,
+        GETDATE(),
+        @tecnico_id,
+        'pendiente',
+        @justificacion,
+        1
+    );
 END;
 GO
 
@@ -387,6 +421,9 @@ GO
 -- Notas:           Actualiza descripción, estado, justificación y técnico.
 -- =============================================
 
+IF OBJECT_ID('SP_UPDATE_ExpedienteById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_UPDATE_ExpedienteById;
+GO
 CREATE PROCEDURE SP_UPDATE_ExpedienteById
     @id INT,
     @descripcion NVARCHAR(255),
@@ -416,12 +453,19 @@ BEGIN
             RETURN;
         END
 
+        -- Validación de justificación si el estado es 'rechazado'
+        IF @estado = 'rechazado' AND (@justificacion IS NULL OR LTRIM(RTRIM(@justificacion)) = '')
+        BEGIN
+            RAISERROR('Debe proporcionar una justificación para expedientes rechazados.', 16, 1);
+            RETURN;
+        END
+
         UPDATE Expedientes
         SET descripcion = @descripcion,
             estado = @estado,
             justificacion = @justificacion,
             tecnico_id = @tecnico_id
-        WHERE id = @id AND activo = 1;
+        WHERE id = @id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -439,9 +483,11 @@ GO
 -- Notas:           Usado para eliminar/restaurar registros sin borrado físico.
 -- =============================================
 
+IF OBJECT_ID('SP_UPDATE_ExpedienteActivoById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_UPDATE_ExpedienteActivoById;
+GO
 CREATE PROCEDURE SP_UPDATE_ExpedienteActivoById
-    @id INT,
-    @activo BIT
+    @id INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -454,7 +500,7 @@ BEGIN
         END
 
         UPDATE Expedientes
-        SET activo = @activo
+        SET activo = CASE WHEN activo = 1 THEN 0 ELSE 1 END
         WHERE id = @id;
     END TRY
     BEGIN CATCH
@@ -473,6 +519,9 @@ GO
 -- Notas:           Incluye solo registros activos.
 -- =============================================
 
+IF OBJECT_ID('SP_GET_IndicioById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_IndicioById;
+GO
 CREATE PROCEDURE SP_GET_IndicioById
     @id INT
 AS
@@ -492,7 +541,7 @@ BEGIN
             fecha_registro,
             activo
         FROM Indicios
-        WHERE id = @id AND activo = 1;
+        WHERE id = @id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -510,6 +559,9 @@ GO
 -- Notas:           No incluye registros eliminados lógicamente.
 -- =============================================
 
+IF OBJECT_ID('SP_GET_Indicios', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_Indicios;
+GO
 CREATE PROCEDURE SP_GET_Indicios
 AS
 BEGIN
@@ -527,8 +579,7 @@ BEGIN
             tecnico_id,
             fecha_registro,
             activo
-        FROM Indicios
-        WHERE activo = 1;
+        FROM Indicios;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -546,6 +597,9 @@ GO
 -- Notas:           El campo "activo" se define automáticamente.
 -- =============================================
 
+IF OBJECT_ID('SP_INSERT_Indicio', 'P') IS NOT NULL
+    DROP PROCEDURE SP_INSERT_Indicio;
+GO
 CREATE PROCEDURE SP_INSERT_Indicio
     @expediente_id INT,
     @descripcion NVARCHAR(255),
@@ -591,6 +645,9 @@ GO
 -- Notas:           Se valida que el registro esté activo antes de actualizar.
 -- =============================================
 
+IF OBJECT_ID('SP_UPDATE_IndicioById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_UPDATE_IndicioById;
+GO
 CREATE PROCEDURE SP_UPDATE_IndicioById
     @id INT,
     @descripcion NVARCHAR(255),
@@ -633,9 +690,11 @@ GO
 -- Notas:           El cambio es reversible (activo = 1 o 0).
 -- =============================================
 
+IF OBJECT_ID('SP_Update_IndicioActivoById', 'P') IS NOT NULL
+    DROP PROCEDURE SP_Update_IndicioActivoById;
+GO
 CREATE PROCEDURE SP_Update_IndicioActivoById
-    @id INT,
-    @activo BIT
+    @id INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -648,7 +707,7 @@ BEGIN
         END
 
         UPDATE Indicios
-        SET activo = @activo
+        SET activo = CASE WHEN activo = 1 THEN 0 ELSE 1 END
         WHERE id = @id;
     END TRY
     BEGIN CATCH

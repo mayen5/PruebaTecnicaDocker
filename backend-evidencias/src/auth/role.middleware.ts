@@ -12,3 +12,12 @@ export const authorizeRoles = (...roles: string[]) => {
         next();
     };
 };
+
+export const requireRole = (roles: Array<'tecnico' | 'coordinador'>) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (!req.user || !roles.includes(req.user.rol)) {
+            return res.status(403).json({ message: 'Acceso denegado: rol no autorizado' });
+        }
+        next();
+    };
+};

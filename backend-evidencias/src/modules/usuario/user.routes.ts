@@ -122,9 +122,9 @@ router.put('/:username', authorizeRoles('coordinador'), validateUserWithPassword
 
 /**
  * @swagger
- * /api/usuarios/{username}:
+ * /api/usuarios/activar/:username:
  *   put:
- *     summary: Desactivar un usuario (eliminación lógica)
+ *     summary: Activar o desactivar un usuario
  *     tags: [Usuarios]
  *     security:
  *       - bearerAuth: []
@@ -140,7 +140,7 @@ router.put('/:username', authorizeRoles('coordinador'), validateUserWithPassword
  *       403:
  *         description: No autorizado
  */
-router.put('/:username', authorizeRoles('coordinador'), updateUserStatusHandler);
+router.put('/activardesactivar/:username', authorizeRoles('coordinador'), updateUserStatusHandler);
 
 /**
  * @swagger

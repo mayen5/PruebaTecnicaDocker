@@ -43,15 +43,24 @@ export const updateUserHandler = async (req: Request, res: Response) => {
     }
 };
 
-// DELETE /usuarios/:username
+// PUT /usuarios/:username
 export const updateUserStatusHandler = async (req: Request, res: Response) => {
     try {
         const { username } = req.params;
+        // Consultar estado actual
+        const user = await userModel.getUserByUsername(username);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        const estabaActivo = user.activo === true;
         await userModel.updateUserStatus(username);
-        res.status(200).json({ message: 'Usuario desactivado exitosamente' });
+        const mensaje = estabaActivo
+            ? 'Usuario desactivado exitosamente'
+            : 'Usuario activado exitosamente';
+        res.status(200).json({ message: mensaje });
     } catch (error) {
-        console.error('Error al desactivar usuario:', error);
-        res.status(500).json({ message: 'Error al desactivar usuario' });
+        console.error('Error al cambiar estado de usuario:', error);
+        res.status(500).json({ message: 'Error al cambiar estado de usuario' });
     }
 };
 

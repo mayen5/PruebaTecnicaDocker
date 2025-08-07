@@ -7,6 +7,8 @@ import swaggerSpec from './swagger';
 import healthRoutes from './routes/health';
 import authRoutes from './auth/auth.routes';
 import userRoutes from './modules/usuario/user.routes';
+import expedienteRoutes from './modules/expediente/expediente.routes';
+import indicioRoutes from './modules/indicio/indicio.routes';
 
 import { errorHandler, notFound, logger } from './middlewares';
 
@@ -28,6 +30,8 @@ app.use(logger);
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', userRoutes);
+app.use('/api/expedientes', expedienteRoutes);
+app.use('/api/indicios', indicioRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Middleware de errores y 404
