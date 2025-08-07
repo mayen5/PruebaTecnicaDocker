@@ -4,6 +4,7 @@ import useAuth from '../auth/useAuth';
 
 const Navbar = () => {
     const [ isOpen, setIsOpen ] = useState(false);
+    const [ isDropdownOpen, setIsDropdownOpen ] = useState(false);
     const { isAuthenticated, logout, rol } = useAuth();
     const navigate = useNavigate();
 
@@ -34,7 +35,9 @@ const Navbar = () => {
 
                 {/* Menú en escritorio */}
                 <ul className="hidden md:flex gap-4 text-sm items-center">
-                    <li><Link to="/" className="px-3 py-2 rounded hover:bg-blue-700">Inicio</Link></li>
+                    {isAuthenticated && (
+                        <li><Link to="/" className="px-3 py-2 rounded hover:bg-blue-700">Inicio</Link></li>
+                    )}
 
                     {isAuthenticated && rol !== 'coordinador' && (
                         <>
@@ -45,6 +48,40 @@ const Navbar = () => {
 
                     {isAuthenticated && rol === 'coordinador' && (
                         <li><Link to="/revisar" className="px-3 py-2 rounded hover:bg-blue-700">Revisar Expedientes</Link></li>
+                    )}
+
+                    {isAuthenticated && (
+                        <li className="relative group">
+                            <button className="px-3 py-2 rounded hover:bg-blue-700">
+                                Informes y Estadísticas
+                            </button>
+                            <ul className="absolute left-0 mt-2 w-48 bg-white text-black shadow-lg rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <li>
+                                    <Link
+                                        to="/reporte-expedientes"
+                                        className="block px-4 py-2 hover:bg-gray-200"
+                                    >
+                                        Reporte de Expedientes
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/reporte-indicios"
+                                        className="block px-4 py-2 hover:bg-gray-200"
+                                    >
+                                        Reporte de Indicios
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/reporte-aprobaciones"
+                                        className="block px-4 py-2 hover:bg-gray-200"
+                                    >
+                                        Reporte de Aprobaciones y Rechazos
+                                    </Link>
+                                </li>
+                            </ul>
+                        </li>
                     )}
 
                     {isAuthenticated && (
@@ -74,7 +111,9 @@ const Navbar = () => {
             {/* Menú móvil */}
             {isOpen && (
                 <ul className="md:hidden px-4 pb-4 text-sm space-y-2 bg-blue-700">
-                    <li><Link to="/" onClick={toggleMenu} className="block py-2">Inicio</Link></li>
+                    {isAuthenticated && (
+                        <li><Link to="/" onClick={toggleMenu} className="block py-2">Inicio</Link></li>
+                    )}
 
                     {isAuthenticated && rol !== 'coordinador' && (
                         <>
@@ -110,6 +149,48 @@ const Navbar = () => {
                             >
                                 Iniciar sesión
                             </Link>
+                        </li>
+                    )}
+
+                    {isAuthenticated && (
+                        <li>
+                            <button
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="block w-full text-left py-2 hover:bg-blue-600"
+                            >
+                                Informes y Estadísticas
+                            </button>
+                            {isDropdownOpen && (
+                                <ul className="pl-4 space-y-2 z-10">
+                                    <li>
+                                        <Link
+                                            to="/reporte-expedientes"
+                                            onClick={toggleMenu}
+                                            className="block py-2 hover:bg-blue-600"
+                                        >
+                                            Reporte de Expedientes
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            to="/reporte-indicios"
+                                            onClick={toggleMenu}
+                                            className="block py-2 hover:bg-blue-600"
+                                        >
+                                            Reporte de Indicios
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            to="/reporte-aprobaciones"
+                                            onClick={toggleMenu}
+                                            className="block py-2 hover:bg-blue-600"
+                                        >
+                                            Reporte de Aprobaciones y Rechazos
+                                        </Link>
+                                    </li>
+                                </ul>
+                            )}
                         </li>
                     )}
                 </ul>

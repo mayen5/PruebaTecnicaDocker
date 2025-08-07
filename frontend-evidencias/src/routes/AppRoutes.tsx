@@ -9,6 +9,7 @@ import useAuth from '../auth/useAuth';
 import ExpedienteForm from '../components/ExpedienteForm';
 import RegistroIndicio from '../pages/RegistroIndicio';
 import IndicioForm from '../components/IndicioForm';
+import ReporteExpedientes from '../pages/ReporteExpedientes';
 
 const AppRoutes = () => {
     const { isAuthenticated } = useAuth();
@@ -70,6 +71,36 @@ const AppRoutes = () => {
                     <PrivateRoute>
                         <RoleRoute allowedRoles={[ 'coordinador' ]}>
                             <RevisarExpedientes />
+                        </RoleRoute>
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/reporte-indicios"
+                element={
+                    <PrivateRoute>
+                        <RoleRoute allowedRoles={[ 'coordinador', 'tecnico' ]}>
+                            <RevisarExpedientes />
+                        </RoleRoute>
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/reporte-aprobaciones"
+                element={
+                    <PrivateRoute>
+                        <RoleRoute allowedRoles={[ 'coordinador', 'tecnico' ]}>
+                            <RevisarExpedientes />
+                        </RoleRoute>
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/reporte-expedientes"
+                element={
+                    <PrivateRoute>
+                        <RoleRoute allowedRoles={[ 'coordinador', 'tecnico' ]}>
+                            <ReporteExpedientes />
                         </RoleRoute>
                     </PrivateRoute>
                 }
