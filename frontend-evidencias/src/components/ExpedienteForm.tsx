@@ -78,7 +78,7 @@ const ExpedienteForm = () => {
     return (
         <div>
             <button
-                onClick={() => navigate('/registro-expediente')}
+                onClick={() => navigate('/expediente')}
                 className="bg-gray-200 text-blue-700 px-4 py-2 rounded hover:bg-gray-300 transition-all mb-4"
             >
                 ← Volver a Registro de Expedientes
