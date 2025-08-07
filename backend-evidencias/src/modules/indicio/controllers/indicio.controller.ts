@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 
 import * as indicioModel from '../models/indicio.model';
@@ -33,14 +32,23 @@ export const getIndicioByIdHandler = async (req: Request, res: Response) => {
 export const createIndicioHandler = async (req: Request, res: Response) => {
     try {
         const { expediente_id, descripcion, color, tamano, peso, ubicacion, tecnico_id } = req.body;
+
+        // Validación de tipos y presencia
+        if (
+            !expediente_id || isNaN(Number(expediente_id)) ||
+            !tecnico_id || isNaN(Number(tecnico_id))
+        ) {
+            return res.status(400).json({ message: 'expediente_id y tecnico_id deben ser números válidos.' });
+        }
+
         await indicioModel.insertIndicio({
-            expediente_id,
+            expediente_id: Number(expediente_id),
             descripcion,
             color,
             tamano,
-            peso,
+            peso: peso !== undefined && peso !== null ? Number(peso) : undefined,
             ubicacion,
-            tecnico_id
+            tecnico_id: Number(tecnico_id)
         });
         res.status(201).json({ message: 'Indicio creado exitosamente' });
     } catch (error: any) {
