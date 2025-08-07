@@ -83,6 +83,16 @@ DB_PORT=1433
 PORT=3001
 ```
 
+## 🖼️ Diagramas
+
+### Diagrama Entidad-Relación (ER)
+
+![Diagrama ER](diagramas/er.png)
+
+### Arquitectura
+
+![Arquitectura](diagramas/arquitectura.png)
+
 ## 📝 Créditos
 
 Desarrollado por Carmelo Mayén – 2025.
