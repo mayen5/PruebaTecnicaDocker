@@ -1,33 +1,34 @@
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 
-interface Expediente {
-    numero: string;
+interface Indicio {
+    codigo: string;
+    descripcion: string;
+    expediente: string;
     fecha: string;
-    tecnico: string;
     estado: string;
 }
 
-const ReporteExpedientes = () => {
+const ReporteIndicios = () => {
     const [ fecha, setFecha ] = useState('');
     const [ estado, setEstado ] = useState('');
-    const [ expedientes, setExpedientes ] = useState<Expediente[]>([]);
+    const [ indicios, setIndicios ] = useState<Indicio[]>([]);
 
-    const estados = [ 'Pendiente', 'Aprobado', 'Rechazado' ];
+    const estados = [ 'Pendiente', 'Analizado', 'Archivado' ];
 
     useEffect(() => {
-        const data: Expediente[] = [
-            { numero: 'EXP001', fecha: '2025-08-01', tecnico: 'Juan Pérez', estado: 'Pendiente' },
-            { numero: 'EXP002', fecha: '2025-08-02', tecnico: 'Ana Gómez', estado: 'Aprobado' },
-            { numero: 'EXP003', fecha: '2025-08-03', tecnico: 'Luis Torres', estado: 'Rechazado' },
+        const data: Indicio[] = [
+            { codigo: 'IND001', descripcion: 'Huella dactilar', expediente: 'EXP001', fecha: '2025-08-01', estado: 'Pendiente' },
+            { codigo: 'IND002', descripcion: 'Muestra de ADN', expediente: 'EXP002', fecha: '2025-08-02', estado: 'Analizado' },
+            { codigo: 'IND003', descripcion: 'Fotografía', expediente: 'EXP003', fecha: '2025-08-03', estado: 'Archivado' },
         ];
-        setExpedientes(data);
+        setIndicios(data);
     }, []);
 
-    const filteredExpedientes = expedientes.filter((exp) => {
+    const filteredIndicios = indicios.filter((ind) => {
         return (
-            (!fecha || exp.fecha === fecha) &&
-            (!estado || exp.estado === estado)
+            (!fecha || ind.fecha === fecha) &&
+            (!estado || ind.estado === estado)
         );
     });
 
@@ -35,19 +36,19 @@ const ReporteExpedientes = () => {
         const doc = new jsPDF();
 
         doc.setFontSize(16);
-        doc.text('DICRI - Reporte de Expedientes', 105, 20, { align: 'center' });
+        doc.text('DICRI - Reporte de Indicios', 105, 20, { align: 'center' });
 
         doc.setFontSize(12);
         doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 10, 30);
         doc.text(`Filtros: Fecha = ${fecha || 'Todos'}, Estado = ${estado || 'Todos'}`, 10, 40);
 
-        doc.text('Listado de Expedientes:', 10, 50);
+        doc.text('Listado de Indicios:', 10, 50);
 
         // Encabezados de la tabla
         let y = 60;
         const startX = 10;
-        const colWidths = [ 10, 35, 35, 50, 35 ]; // Ajusta según el contenido
-        const headers = [ '#', 'Número', 'Fecha', 'Técnico', 'Estado' ];
+        const colWidths = [ 10, 35, 50, 35, 35, 35 ]; // Ajusta según el contenido
+        const headers = [ '#', 'Código', 'Descripción', 'Expediente', 'Fecha', 'Estado' ];
 
         // Dibujar encabezados
         let x = startX;
@@ -61,30 +62,32 @@ const ReporteExpedientes = () => {
 
         // Filas de datos
         y += 8;
-        filteredExpedientes.forEach((exp, index) => {
+        filteredIndicios.forEach((ind, index) => {
             x = startX;
             doc.text(String(index + 1), x + 2, y);
             x += colWidths[ 0 ];
-            doc.text(exp.numero, x + 2, y);
+            doc.text(ind.codigo, x + 2, y);
             x += colWidths[ 1 ];
-            doc.text(exp.fecha, x + 2, y);
+            doc.text(ind.descripcion, x + 2, y);
             x += colWidths[ 2 ];
-            doc.text(exp.tecnico, x + 2, y);
+            doc.text(ind.expediente, x + 2, y);
             x += colWidths[ 3 ];
-            doc.text(exp.estado, x + 2, y);
+            doc.text(ind.fecha, x + 2, y);
+            x += colWidths[ 4 ];
+            doc.text(ind.estado, x + 2, y);
             y += 8;
         });
 
-        if (filteredExpedientes.length === 0) {
+        if (filteredIndicios.length === 0) {
             doc.text('No se encontraron resultados.', 10, y);
         }
 
-        doc.save('reporte-expedientes.pdf');
+        doc.save('reporte-indicios.pdf');
     };
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Generar Reporte de Expedientes</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Generar Reporte de Indicios</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -120,28 +123,30 @@ const ReporteExpedientes = () => {
                     <thead className="bg-gray-200 text-gray-700">
                         <tr>
                             <th className="border border-gray-300 px-4 py-2">#</th>
-                            <th className="border border-gray-300 px-4 py-2">Número</th>
+                            <th className="border border-gray-300 px-4 py-2">Código</th>
+                            <th className="border border-gray-300 px-4 py-2">Descripción</th>
+                            <th className="border border-gray-300 px-4 py-2">Expediente</th>
                             <th className="border border-gray-300 px-4 py-2">Fecha</th>
-                            <th className="border border-gray-300 px-4 py-2">Técnico</th>
                             <th className="border border-gray-300 px-4 py-2">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredExpedientes.length === 0 ? (
+                        {filteredIndicios.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="text-center py-4 text-gray-600">No se encontraron resultados</td>
+                                <td colSpan={6} className="text-center py-4 text-gray-600">No se encontraron resultados</td>
                             </tr>
                         ) : (
-                            filteredExpedientes.map((exp, index) => (
+                            filteredIndicios.map((ind, index) => (
                                 <tr
-                                    key={exp.numero}
+                                    key={ind.codigo}
                                     className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100`}
                                 >
                                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.numero}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.fecha}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.tecnico}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.estado}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{ind.codigo}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{ind.descripcion}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{ind.expediente}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{ind.fecha}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{ind.estado}</td>
                                 </tr>
                             ))
                         )}
@@ -159,4 +164,4 @@ const ReporteExpedientes = () => {
     );
 };
 
-export default ReporteExpedientes;
+export default ReporteIndicios;

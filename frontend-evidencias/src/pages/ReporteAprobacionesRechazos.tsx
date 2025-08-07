@@ -2,24 +2,24 @@ import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 
 interface Expediente {
-    numero: string;
+    codigo: string;
+    solicitante: string;
     fecha: string;
-    tecnico: string;
     estado: string;
 }
 
-const ReporteExpedientes = () => {
+const ReporteAprobacionesRechazos = () => {
     const [ fecha, setFecha ] = useState('');
     const [ estado, setEstado ] = useState('');
     const [ expedientes, setExpedientes ] = useState<Expediente[]>([]);
 
-    const estados = [ 'Pendiente', 'Aprobado', 'Rechazado' ];
+    const estados = [ 'Aprobado', 'Rechazado', 'Pendiente' ];
 
     useEffect(() => {
         const data: Expediente[] = [
-            { numero: 'EXP001', fecha: '2025-08-01', tecnico: 'Juan Pérez', estado: 'Pendiente' },
-            { numero: 'EXP002', fecha: '2025-08-02', tecnico: 'Ana Gómez', estado: 'Aprobado' },
-            { numero: 'EXP003', fecha: '2025-08-03', tecnico: 'Luis Torres', estado: 'Rechazado' },
+            { codigo: 'EXP001', solicitante: 'Juan Pérez', fecha: '2025-08-01', estado: 'Aprobado' },
+            { codigo: 'EXP002', solicitante: 'María López', fecha: '2025-08-02', estado: 'Rechazado' },
+            { codigo: 'EXP003', solicitante: 'Carlos Ruiz', fecha: '2025-08-03', estado: 'Pendiente' },
         ];
         setExpedientes(data);
     }, []);
@@ -35,7 +35,7 @@ const ReporteExpedientes = () => {
         const doc = new jsPDF();
 
         doc.setFontSize(16);
-        doc.text('DICRI - Reporte de Expedientes', 105, 20, { align: 'center' });
+        doc.text('DICRI - Reporte de Aprobaciones y Rechazos', 105, 20, { align: 'center' });
 
         doc.setFontSize(12);
         doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 10, 30);
@@ -46,8 +46,8 @@ const ReporteExpedientes = () => {
         // Encabezados de la tabla
         let y = 60;
         const startX = 10;
-        const colWidths = [ 10, 35, 35, 50, 35 ]; // Ajusta según el contenido
-        const headers = [ '#', 'Número', 'Fecha', 'Técnico', 'Estado' ];
+        const colWidths = [ 10, 35, 50, 35, 35 ]; // Ajusta según el contenido
+        const headers = [ '#', 'Código', 'Solicitante', 'Fecha', 'Estado' ];
 
         // Dibujar encabezados
         let x = startX;
@@ -65,11 +65,11 @@ const ReporteExpedientes = () => {
             x = startX;
             doc.text(String(index + 1), x + 2, y);
             x += colWidths[ 0 ];
-            doc.text(exp.numero, x + 2, y);
+            doc.text(exp.codigo, x + 2, y);
             x += colWidths[ 1 ];
-            doc.text(exp.fecha, x + 2, y);
+            doc.text(exp.solicitante, x + 2, y);
             x += colWidths[ 2 ];
-            doc.text(exp.tecnico, x + 2, y);
+            doc.text(exp.fecha, x + 2, y);
             x += colWidths[ 3 ];
             doc.text(exp.estado, x + 2, y);
             y += 8;
@@ -79,12 +79,12 @@ const ReporteExpedientes = () => {
             doc.text('No se encontraron resultados.', 10, y);
         }
 
-        doc.save('reporte-expedientes.pdf');
+        doc.save('reporte-aprobaciones-rechazos.pdf');
     };
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Generar Reporte de Expedientes</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Reporte de Aprobaciones y Rechazos</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -120,9 +120,9 @@ const ReporteExpedientes = () => {
                     <thead className="bg-gray-200 text-gray-700">
                         <tr>
                             <th className="border border-gray-300 px-4 py-2">#</th>
-                            <th className="border border-gray-300 px-4 py-2">Número</th>
+                            <th className="border border-gray-300 px-4 py-2">Código</th>
+                            <th className="border border-gray-300 px-4 py-2">Solicitante</th>
                             <th className="border border-gray-300 px-4 py-2">Fecha</th>
-                            <th className="border border-gray-300 px-4 py-2">Técnico</th>
                             <th className="border border-gray-300 px-4 py-2">Estado</th>
                         </tr>
                     </thead>
@@ -134,13 +134,13 @@ const ReporteExpedientes = () => {
                         ) : (
                             filteredExpedientes.map((exp, index) => (
                                 <tr
-                                    key={exp.numero}
+                                    key={exp.codigo}
                                     className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100`}
                                 >
                                     <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.numero}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{exp.codigo}</td>
+                                    <td className="border border-gray-300 px-4 py-2">{exp.solicitante}</td>
                                     <td className="border border-gray-300 px-4 py-2">{exp.fecha}</td>
-                                    <td className="border border-gray-300 px-4 py-2">{exp.tecnico}</td>
                                     <td className="border border-gray-300 px-4 py-2">{exp.estado}</td>
                                 </tr>
                             ))
@@ -159,4 +159,4 @@ const ReporteExpedientes = () => {
     );
 };
 
-export default ReporteExpedientes;
+export default ReporteAprobacionesRechazos;
