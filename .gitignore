@@ -11,6 +11,9 @@ frontend-evidencias/.env
 
 # Build outputs
 backend-evidencias/dist/
+backend-evidencias/reports/
+backend-evidencias/package-lock.json
+backend-evidencias/coverage/
 frontend-evidencias/dist/
 
 # IDE files

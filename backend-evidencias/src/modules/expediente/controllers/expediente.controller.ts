@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { getConnection } from '../../../db';
+
+import * as expedienteModel from '../models/expediente.model';
 
 // GET /expedientes
 export const getExpedientesHandler = async (_req: Request, res: Response) => {
     try {
-        const pool = await getConnection();
-        const result = await pool.request().execute('SP_GET_Expedientes');
-        res.status(200).json(result.recordset);
+        const expedientes = await expedienteModel.getAllExpedientes();
+        res.status(200).json(expedientes);
     } catch (error) {
         console.error('Error al obtener expedientes:', error);
         res.status(500).json({ message: 'Error al obtener expedientes' });
@@ -17,11 +17,7 @@ export const getExpedientesHandler = async (_req: Request, res: Response) => {
 export const getExpedienteByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const pool = await getConnection();
-        const result = await pool.request()
-            .input('id', Number(id))
-            .execute('SP_GET_ExpedienteById');
-        const expediente = result.recordset[ 0 ];
+        const expediente = await expedienteModel.getExpedienteById(Number(id));
         if (!expediente) {
             return res.status(404).json({ message: 'Expediente no encontrado' });
         }
@@ -36,13 +32,12 @@ export const getExpedienteByIdHandler = async (req: Request, res: Response) => {
 export const createExpedienteHandler = async (req: Request, res: Response) => {
     try {
         const { codigo, descripcion, tecnico_id, justificacion } = req.body;
-        const pool = await getConnection();
-        await pool.request()
-            .input('codigo', codigo)
-            .input('descripcion', descripcion)
-            .input('tecnico_id', tecnico_id)
-            .input('justificacion', justificacion || null)
-            .execute('SP_INSERT_Expediente');
+        await expedienteModel.insertExpediente({
+            codigo,
+            descripcion,
+            tecnico_id,
+            justificacion
+        });
         res.status(201).json({ message: 'Expediente creado exitosamente' });
     } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
@@ -56,14 +51,13 @@ export const updateExpedienteByIdHandler = async (req: Request, res: Response) =
     try {
         const { id } = req.params;
         const { descripcion, estado, justificacion, tecnico_id } = req.body;
-        const pool = await getConnection();
-        await pool.request()
-            .input('id', Number(id))
-            .input('descripcion', descripcion)
-            .input('estado', estado)
-            .input('justificacion', justificacion)
-            .input('tecnico_id', tecnico_id)
-            .execute('SP_UPDATE_ExpedienteById');
+        await expedienteModel.updateExpedienteById({
+            id: Number(id),
+            descripcion,
+            estado,
+            justificacion,
+            tecnico_id
+        });
         res.status(200).json({ message: 'Expediente actualizado exitosamente' });
     } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
@@ -76,19 +70,12 @@ export const updateExpedienteByIdHandler = async (req: Request, res: Response) =
 export const updateExpedienteActivoByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const pool = await getConnection();
-        // Consultar estado actual
-        const result = await pool.request()
-            .input('id', Number(id))
-            .execute('SP_GET_ExpedienteById');
-        const expediente = result.recordset[ 0 ];
+        const expediente = await expedienteModel.getExpedienteById(Number(id));
         if (!expediente) {
             return res.status(404).json({ message: 'Expediente no encontrado' });
         }
-        const estabaActivo = expediente.activo === 1;
-        await pool.request()
-            .input('id', Number(id))
-            .execute('SP_UPDATE_ExpedienteActivoById');
+        const estabaActivo = expediente.activo === true;
+        await expedienteModel.updateExpedienteActivoById(Number(id));
         const mensaje = estabaActivo
             ? 'Expediente desactivado exitosamente'
             : 'Expediente activado exitosamente';

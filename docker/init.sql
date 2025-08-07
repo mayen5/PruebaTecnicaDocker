@@ -135,8 +135,7 @@ BEGIN
         -- Consulta principal: solo usuarios activos
         SELECT id, username, password_hash, rol, activo
         FROM Usuarios
-        WHERE username = @username
-          AND activo = 1;
+        WHERE username = @username;
     END TRY
     BEGIN CATCH
         -- Manejo de errores
@@ -316,7 +315,9 @@ BEGIN
             e.estado,
             e.justificacion,
             e.activo
-        FROM Expedientes e;
+        FROM Expedientes e
+        INNER JOIN Usuarios u ON e.tecnico_id = u.id
+        WHERE e.id = @id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -353,7 +354,8 @@ BEGIN
             e.estado,
             e.justificacion,
             e.activo
-        FROM Expedientes e;
+        FROM Expedientes e
+        INNER JOIN Usuarios u ON e.tecnico_id = u.id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();

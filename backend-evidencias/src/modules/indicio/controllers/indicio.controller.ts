@@ -1,13 +1,13 @@
 
 import { Request, Response } from 'express';
-import { getConnection } from '../../../db';
+
+import * as indicioModel from '../models/indicio.model';
 
 // GET /indicios
 export const getIndiciosHandler = async (_req: Request, res: Response) => {
     try {
-        const pool = await getConnection();
-        const result = await pool.request().execute('SP_GET_Indicios');
-        res.status(200).json(result.recordset);
+        const indicios = await indicioModel.getAllIndicios();
+        res.status(200).json(indicios);
     } catch (error) {
         console.error('Error al obtener indicios:', error);
         res.status(500).json({ message: 'Error al obtener indicios' });
@@ -18,11 +18,7 @@ export const getIndiciosHandler = async (_req: Request, res: Response) => {
 export const getIndicioByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const pool = await getConnection();
-        const result = await pool.request()
-            .input('id', Number(id))
-            .execute('SP_GET_IndicioById');
-        const indicio = result.recordset[0];
+        const indicio = await indicioModel.getIndicioById(Number(id));
         if (!indicio) {
             return res.status(404).json({ message: 'Indicio no encontrado' });
         }
@@ -37,16 +33,15 @@ export const getIndicioByIdHandler = async (req: Request, res: Response) => {
 export const createIndicioHandler = async (req: Request, res: Response) => {
     try {
         const { expediente_id, descripcion, color, tamano, peso, ubicacion, tecnico_id } = req.body;
-        const pool = await getConnection();
-        await pool.request()
-            .input('expediente_id', expediente_id)
-            .input('descripcion', descripcion ?? null)
-            .input('color', color ?? null)
-            .input('tamano', tamano ?? null)
-            .input('peso', peso ?? null)
-            .input('ubicacion', ubicacion ?? null)
-            .input('tecnico_id', tecnico_id)
-            .execute('SP_INSERT_Indicio');
+        await indicioModel.insertIndicio({
+            expediente_id,
+            descripcion,
+            color,
+            tamano,
+            peso,
+            ubicacion,
+            tecnico_id
+        });
         res.status(201).json({ message: 'Indicio creado exitosamente' });
     } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
@@ -60,15 +55,14 @@ export const updateIndicioByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { descripcion, color, tamano, peso, ubicacion } = req.body;
-        const pool = await getConnection();
-        await pool.request()
-            .input('id', Number(id))
-            .input('descripcion', descripcion ?? null)
-            .input('color', color ?? null)
-            .input('tamano', tamano ?? null)
-            .input('peso', peso ?? null)
-            .input('ubicacion', ubicacion ?? null)
-            .execute('SP_UPDATE_IndicioById');
+        await indicioModel.updateIndicioById({
+            id: Number(id),
+            descripcion,
+            color,
+            tamano,
+            peso,
+            ubicacion
+        });
         res.status(200).json({ message: 'Indicio actualizado exitosamente' });
     } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
@@ -81,19 +75,12 @@ export const updateIndicioByIdHandler = async (req: Request, res: Response) => {
 export const updateIndicioActivoByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const pool = await getConnection();
-        // Consultar estado actual
-        const result = await pool.request()
-            .input('id', Number(id))
-            .execute('SP_GET_IndicioById');
-        const indicio = result.recordset[0];
+        const indicio = await indicioModel.getIndicioById(Number(id));
         if (!indicio) {
             return res.status(404).json({ message: 'Indicio no encontrado' });
         }
-        const estabaActivo = indicio.activo === 1;
-        await pool.request()
-            .input('id', Number(id))
-            .execute('SP_Update_IndicioActivoById');
+        const estabaActivo = indicio.activo === true;
+        await indicioModel.updateIndicioActivoById(Number(id));
         const mensaje = estabaActivo
             ? 'Indicio desactivado exitosamente'
             : 'Indicio activado exitosamente';

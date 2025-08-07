@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 
-import * as userModel from '../models/user.model';
+import * as userModel from '../models/usuario.model';
 
 // GET /usuarios
 export const getUsersHandler = async (_req: Request, res: Response) => {

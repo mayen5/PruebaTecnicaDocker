@@ -5,14 +5,14 @@ import {
     updateUserHandler,
     updateUserStatusHandler,
     getUserByUsernameHandler
-} from './controllers/user.controller';
+} from './controllers/usuario.controller';
 
 import { authenticateJWT } from '../../auth/auth.middleware';
 import { authorizeRoles } from '../../auth/role.middleware';
 import {
     validateUserWithPassword,
     validateUserWithPasswordHash
-} from './middlewares/user.middleware';
+} from './middlewares/usuario.middleware';
 
 const router = Router();
 

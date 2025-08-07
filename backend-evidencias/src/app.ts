@@ -6,7 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger';
 import healthRoutes from './routes/health';
 import authRoutes from './auth/auth.routes';
-import userRoutes from './modules/usuario/user.routes';
+import usuarioRoutes from './modules/usuario/usuario.routes';
 import expedienteRoutes from './modules/expediente/expediente.routes';
 import indicioRoutes from './modules/indicio/indicio.routes';
 
@@ -29,7 +29,7 @@ app.use(logger);
 // Rutas principales
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/usuarios', userRoutes);
+app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/expedientes', expedienteRoutes);
 app.use('/api/indicios', indicioRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
