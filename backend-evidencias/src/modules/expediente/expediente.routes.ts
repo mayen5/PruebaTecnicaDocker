@@ -114,6 +114,9 @@ router.post('/', authenticateJWT, requireRole([ 'tecnico', 'coordinador' ]), cre
  *                 type: string
  *               tecnico_id:
  *                 type: integer
+ *               aprobador_id:
+ *                 type: integer
+ *                 description: ID del usuario que aprueba/rechaza (solo requerido si estado es aprobado o rechazado)
  *     responses:
  *       200:
  *         description: Actualizado

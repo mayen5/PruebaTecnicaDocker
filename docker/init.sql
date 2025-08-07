@@ -56,8 +56,11 @@ BEGIN
         tecnico_id INT NOT NULL,
         estado NVARCHAR(20) NOT NULL CHECK (estado IN ('pendiente', 'aprobado', 'rechazado')),
         justificacion NVARCHAR(255),
+        aprobador_id INT NULL,
+        fecha_estado DATETIME NULL,
         activo BIT NOT NULL DEFAULT 1,
-        FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id)
+        FOREIGN KEY (tecnico_id) REFERENCES Usuarios(id),
+        FOREIGN KEY (aprobador_id) REFERENCES Usuarios(id)
     );
 END
 GO
@@ -314,9 +317,13 @@ BEGIN
             u.username AS tecnico_username,
             e.estado,
             e.justificacion,
+            e.aprobador_id,
+            ua.username AS aprobador_username,
+            e.fecha_estado,
             e.activo
         FROM Expedientes e
         INNER JOIN Usuarios u ON e.tecnico_id = u.id
+        LEFT JOIN Usuarios ua ON e.aprobador_id = ua.id
         WHERE e.id = @id;
     END TRY
     BEGIN CATCH
@@ -353,9 +360,13 @@ BEGIN
             u.username AS tecnico_username,
             e.estado,
             e.justificacion,
+            e.aprobador_id,
+            ua.username AS aprobador_username,
+            e.fecha_estado,
             e.activo
         FROM Expedientes e
-        INNER JOIN Usuarios u ON e.tecnico_id = u.id;
+        INNER JOIN Usuarios u ON e.tecnico_id = u.id
+        LEFT JOIN Usuarios ua ON e.aprobador_id = ua.id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -431,7 +442,8 @@ CREATE PROCEDURE SP_UPDATE_ExpedienteById
     @descripcion NVARCHAR(255),
     @estado NVARCHAR(20),
     @justificacion NVARCHAR(255),
-    @tecnico_id INT
+    @tecnico_id INT,
+    @aprobador_id INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -462,12 +474,33 @@ BEGIN
             RETURN;
         END
 
-        UPDATE Expedientes
-        SET descripcion = @descripcion,
-            estado = @estado,
-            justificacion = @justificacion,
-            tecnico_id = @tecnico_id
-        WHERE id = @id;
+        -- Si el estado es aprobado o rechazado, registrar aprobador y fecha_estado
+        IF @estado IN ('aprobado', 'rechazado')
+        BEGIN
+            IF @aprobador_id IS NULL OR NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @aprobador_id AND activo = 1)
+            BEGIN
+                RAISERROR('Debe proporcionar un aprobador válido para aprobar/rechazar.', 16, 1);
+                RETURN;
+            END
+
+            UPDATE Expedientes
+            SET descripcion = @descripcion,
+                estado = @estado,
+                justificacion = @justificacion,
+                tecnico_id = @tecnico_id,
+                aprobador_id = @aprobador_id,
+                fecha_estado = GETDATE()
+            WHERE id = @id;
+        END
+        ELSE
+        BEGIN
+            UPDATE Expedientes
+            SET descripcion = @descripcion,
+                estado = @estado,
+                justificacion = @justificacion,
+                tecnico_id = @tecnico_id
+            WHERE id = @id;
+        END
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();

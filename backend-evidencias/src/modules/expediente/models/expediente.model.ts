@@ -8,13 +8,16 @@ export interface Expediente {
     tecnico_id: number;
     justificacion?: string | null;
     estado: 'pendiente' | 'aprobado' | 'rechazado';
+    aprobador_id?: number | null;
+    aprobador_username?: string | null;
+    fecha_estado?: Date | null;
     activo: boolean;
 }
 
 export const getAllExpedientes = async (): Promise<Expediente[]> => {
     const pool = await getConnection();
     const result = await pool.request().execute('SP_GET_Expedientes');
-    return result.recordset;
+    return result.recordset as Expediente[];
 };
 
 export const getExpedienteById = async (id: number): Promise<Expediente | null> => {
@@ -23,7 +26,7 @@ export const getExpedienteById = async (id: number): Promise<Expediente | null> 
         .input('id', id)
         .execute('SP_GET_ExpedienteById');
 
-    return result.recordset[ 0 ] || null;
+    return result.recordset[ 0 ] as Expediente || null;
 };
 
 export const insertExpediente = async (exp: {
@@ -47,15 +50,20 @@ export const updateExpedienteById = async (exp: {
     estado: 'pendiente' | 'aprobado' | 'rechazado';
     justificacion: string;
     tecnico_id: number;
+    aprobador_id?: number; // Nuevo campo opcional
 }): Promise<void> => {
     const pool = await getConnection();
-    await pool.request()
+    const req = pool.request()
         .input('id', exp.id)
         .input('descripcion', exp.descripcion)
         .input('estado', exp.estado)
         .input('justificacion', exp.justificacion)
-        .input('tecnico_id', exp.tecnico_id)
-        .execute('SP_UPDATE_ExpedienteById');
+        .input('tecnico_id', exp.tecnico_id);
+
+    if (exp.aprobador_id !== undefined) {
+        req.input('aprobador_id', exp.aprobador_id);
+    }
+    await req.execute('SP_UPDATE_ExpedienteById');
 };
 
 export const updateExpedienteActivoById = async (id: number): Promise<void> => {

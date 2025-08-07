@@ -50,13 +50,14 @@ export const createExpedienteHandler = async (req: Request, res: Response) => {
 export const updateExpedienteByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { descripcion, estado, justificacion, tecnico_id } = req.body;
+        const { descripcion, estado, justificacion, tecnico_id, aprobador_id } = req.body;
         await expedienteModel.updateExpedienteById({
             id: Number(id),
             descripcion,
             estado,
             justificacion,
-            tecnico_id
+            tecnico_id,
+            aprobador_id
         });
         res.status(200).json({ message: 'Expediente actualizado exitosamente' });
     } catch (error: any) {
