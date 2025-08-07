@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../auth/useAuth';
 
 interface Indicio {
@@ -14,11 +15,11 @@ interface Indicio {
 interface Expediente {
     id: string;
     codigo: string;
-    // ...puede tener otras propiedades...
 }
 
 const IndicioForm = () => {
-    const { token, username, id: userId } = useAuth(); // userId debe ser el id numérico del usuario técnico
+    const { token, username, id: userId } = useAuth();
+    const navigate = useNavigate();
 
     const [ indicio, setIndicio ] = useState<Indicio>({
         expedienteId: '',
@@ -121,7 +122,9 @@ const IndicioForm = () => {
                 throw new Error(data.message || 'Error al crear indicio');
             }
 
-            setFeedback({ type: 'success', message: 'Indicio registrado correctamente.' });
+            alert('Indicio registrado correctamente.');
+            navigate('/indicio'); // Navigate to /indicio
+
             setIndicio({
                 expedienteId: '',
                 descripcion: '',
@@ -150,110 +153,118 @@ const IndicioForm = () => {
     }, [ feedback ]);
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 bg-white shadow-md rounded-md mt-8">
-            <h2 className="text-2xl font-semibold mb-4 text-blue-800">Registrar Indicio</h2>
-
-            {feedback && (
-                <p className={`mb-4 ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {feedback.message}
-                </p>
-            )}
-
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Expediente</label>
-                <select
-                    name="expedienteId"
-                    value={indicio.expedienteId}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    disabled={loading}
-                >
-                    <option value="">Seleccione un expediente</option>
-                    {expedientesDisponibles.map(exp => (
-                        <option key={exp.id} value={exp.id}>
-                            {exp.codigo}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Descripción</label>
-                <input
-                    type="text"
-                    name="descripcion"
-                    value={indicio.descripcion}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-
-            <div className="mb-4 grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block font-medium text-gray-700">Color</label>
-                    <input
-                        type="text"
-                        name="color"
-                        value={indicio.color}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    />
-                </div>
-                <div>
-                    <label className="block font-medium text-gray-700">Tamaño</label>
-                    <input
-                        type="text"
-                        name="tamaño"
-                        value={indicio.tamaño}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    />
-                </div>
-            </div>
-
-            <div className="mb-4 grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block font-medium text-gray-700">Peso</label>
-                    <input
-                        type="text"
-                        name="peso"
-                        value={indicio.peso}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    />
-                </div>
-                <div>
-                    <label className="block font-medium text-gray-700">Ubicación</label>
-                    <input
-                        type="text"
-                        name="ubicacion"
-                        value={indicio.ubicacion}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    />
-                </div>
-            </div>
-
-            <div className="mb-6">
-                <label className="block font-medium text-gray-700">Técnico que registra</label>
-                <input
-                    type="text"
-                    name="tecnico"
-                    value={indicio.tecnico}
-                    readOnly
-                    className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-
+        <div>
             <button
-                type="submit"
-                className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition-all"
+                onClick={() => navigate('/indicio')}
+                className="bg-gray-200 text-blue-700 px-4 py-2 rounded hover:bg-gray-300 transition-all mb-4"
             >
-                Guardar Indicio
+                ← Volver a Indicios
             </button>
-        </form>
+            <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 bg-white shadow-md rounded-md mt-8">
+                <h2 className="text-2xl font-semibold mb-4 text-blue-800">Registrar Indicio</h2>
+
+                {feedback && (
+                    <p className={`mb-4 ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                        {feedback.message}
+                    </p>
+                )}
+
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Expediente</label>
+                    <select
+                        name="expedienteId"
+                        value={indicio.expedienteId}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        disabled={loading}
+                    >
+                        <option value="">Seleccione un expediente</option>
+                        {expedientesDisponibles.map(exp => (
+                            <option key={exp.id} value={exp.id}>
+                                {exp.codigo}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Descripción</label>
+                    <input
+                        type="text"
+                        name="descripcion"
+                        value={indicio.descripcion}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+
+                <div className="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block font-medium text-gray-700">Color</label>
+                        <input
+                            type="text"
+                            name="color"
+                            value={indicio.color}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label className="block font-medium text-gray-700">Tamaño</label>
+                        <input
+                            type="text"
+                            name="tamaño"
+                            value={indicio.tamaño}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        />
+                    </div>
+                </div>
+
+                <div className="mb-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block font-medium text-gray-700">Peso</label>
+                        <input
+                            type="text"
+                            name="peso"
+                            value={indicio.peso}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label className="block font-medium text-gray-700">Ubicación</label>
+                        <input
+                            type="text"
+                            name="ubicacion"
+                            value={indicio.ubicacion}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        />
+                    </div>
+                </div>
+
+                <div className="mb-6">
+                    <label className="block font-medium text-gray-700">Técnico que registra</label>
+                    <input
+                        type="text"
+                        name="tecnico"
+                        value={indicio.tecnico}
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition-all"
+                >
+                    Guardar Indicio
+                </button>
+            </form>
+        </div>
     );
 };
 

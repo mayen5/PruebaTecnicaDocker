@@ -1,13 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from '../pages/Home';
 import RegistroExpediente from '../pages/RegistroExpediente';
-import AgregarIndicio from '../pages/AgregarIndicio';
 import RevisarExpedientes from '../pages/RevisarExpedientes';
 import PrivateRoute from './PrivateRoute';
 import RoleRoute from './RoleRoute';
 import Login from '../pages/Login';
 import useAuth from '../auth/useAuth';
 import ExpedienteForm from '../components/ExpedienteForm';
+import RegistroIndicio from '../pages/RegistroIndicio';
+import IndicioForm from '../components/IndicioForm';
 
 const AppRoutes = () => {
     const { isAuthenticated } = useAuth();
@@ -48,7 +49,17 @@ const AppRoutes = () => {
                 element={
                     <PrivateRoute>
                         <RoleRoute allowedRoles={[ 'tecnico' ]}>
-                            <AgregarIndicio />
+                            <RegistroIndicio />
+                        </RoleRoute>
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/indicio-form"
+                element={
+                    <PrivateRoute>
+                        <RoleRoute allowedRoles={[ 'tecnico' ]}>
+                            <IndicioForm />
                         </RoleRoute>
                     </PrivateRoute>
                 }

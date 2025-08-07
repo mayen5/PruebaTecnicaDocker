@@ -11,12 +11,16 @@ export interface Indicio {
     tecnico_id: number;
     fecha_registro: Date;
     activo: boolean;
+    expediente_codigo: string;
 }
 
 export const getAllIndicios = async (): Promise<Indicio[]> => {
     const pool = await getConnection();
     const result = await pool.request().execute('SP_GET_Indicios');
-    return result.recordset;
+    return result.recordset.map((record) => ({
+        ...record,
+        expediente_codigo: record.expediente_codigo,
+    }));
 };
 
 export const getIndicioById = async (id: number): Promise<Indicio | null> => {
@@ -24,7 +28,12 @@ export const getIndicioById = async (id: number): Promise<Indicio | null> => {
     const result = await pool.request()
         .input('id', id)
         .execute('SP_GET_IndicioById');
-    return result.recordset[ 0 ] || null;
+    return result.recordset[ 0 ]
+        ? {
+            ...result.recordset[ 0 ],
+            expediente_codigo: result.recordset[ 0 ].expediente_codigo,
+        }
+        : null;
 };
 
 export const insertIndicio = async (ind: {

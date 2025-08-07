@@ -567,18 +567,20 @@ BEGIN
 
     BEGIN TRY
         SELECT 
-            id,
-            expediente_id,
-            descripcion,
-            color,
-            tamano,
-            peso,
-            ubicacion,
-            tecnico_id,
-            fecha_registro,
-            activo
-        FROM Indicios
-        WHERE id = @id;
+            i.id,
+            i.expediente_id,
+            e.codigo AS expediente_codigo,
+            i.descripcion,
+            i.color,
+            i.tamano,
+            i.peso,
+            i.ubicacion,
+            i.tecnico_id,
+            i.fecha_registro,
+            i.activo
+        FROM Indicios i
+        INNER JOIN Expedientes e ON i.expediente_id = e.id
+        WHERE i.id = @id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
@@ -606,17 +608,19 @@ BEGIN
 
     BEGIN TRY
         SELECT 
-            id,
-            expediente_id,
-            descripcion,
-            color,
-            tamano,
-            peso,
-            ubicacion,
-            tecnico_id,
-            fecha_registro,
-            activo
-        FROM Indicios;
+            i.id,
+            i.expediente_id,
+            e.codigo AS expediente_codigo,
+            i.descripcion,
+            i.color,
+            i.tamano,
+            i.peso,
+            i.ubicacion,
+            i.tecnico_id,
+            i.fecha_registro,
+            i.activo
+        FROM Indicios i
+        INNER JOIN Expedientes e ON i.expediente_id = e.id;
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
