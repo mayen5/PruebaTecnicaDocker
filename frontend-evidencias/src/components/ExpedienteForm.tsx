@@ -29,8 +29,8 @@ const ExpedienteForm = () => {
 
         try {
             const payload = {
-                ...expediente,
-                tecnico: username,
+                codigo: expediente.codigo,
+                descripcion: expediente.descripcion,
                 tecnico_id: id
             };
 

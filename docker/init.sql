@@ -439,11 +439,13 @@ IF OBJECT_ID('SP_UPDATE_ExpedienteById', 'P') IS NOT NULL
 GO
 CREATE PROCEDURE SP_UPDATE_ExpedienteById
     @id INT,
+    @codigo NVARCHAR(50) = NULL,
     @descripcion NVARCHAR(255),
     @estado NVARCHAR(20),
-    @justificacion NVARCHAR(255),
+    @justificacion NVARCHAR(255) = NULL,
     @tecnico_id INT,
-    @aprobador_id INT = NULL
+    @aprobador_id INT = NULL,
+    @fecha_estado DATETIME = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -467,14 +469,12 @@ BEGIN
             RETURN;
         END
 
-        -- Validación de justificación si el estado es 'rechazado'
         IF @estado = 'rechazado' AND (@justificacion IS NULL OR LTRIM(RTRIM(@justificacion)) = '')
         BEGIN
             RAISERROR('Debe proporcionar una justificación para expedientes rechazados.', 16, 1);
             RETURN;
         END
 
-        -- Si el estado es aprobado o rechazado, registrar aprobador y fecha_estado
         IF @estado IN ('aprobado', 'rechazado')
         BEGIN
             IF @aprobador_id IS NULL OR NOT EXISTS (SELECT 1 FROM Usuarios WHERE id = @aprobador_id AND activo = 1)
@@ -484,7 +484,8 @@ BEGIN
             END
 
             UPDATE Expedientes
-            SET descripcion = @descripcion,
+            SET codigo = @codigo,
+                descripcion = @descripcion,
                 estado = @estado,
                 justificacion = @justificacion,
                 tecnico_id = @tecnico_id,
@@ -495,7 +496,8 @@ BEGIN
         ELSE
         BEGIN
             UPDATE Expedientes
-            SET descripcion = @descripcion,
+            SET codigo = @codigo,
+                descripcion = @descripcion,
                 estado = @estado,
                 justificacion = @justificacion,
                 tecnico_id = @tecnico_id

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../auth/useAuth';
+import { PlusIcon, PencilIcon } from '@heroicons/react/24/solid'
 
 
 interface Expediente {
@@ -50,12 +51,13 @@ const RegistroExpediente = () => {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    ...expediente,
-                    tecnico_id: tecnicoId,
+                    codigo: expediente.codigo || editingExpediente?.codigo,
+                    descripcion: expediente.descripcion || editingExpediente?.descripcion,
                     estado: expediente.estado || editingExpediente?.estado,
                     justificacion: expediente.justificacion || editingExpediente?.justificacion || null,
-                    aprobador_id: expediente.aprobador_id || editingExpediente?.aprobador_id || null,
-                    fecha_estado: expediente.fecha_estado || editingExpediente?.fecha_estado || null,
+                    tecnico_id: tecnicoId,
+                    aprobador_id: editingExpediente?.aprobador_id || null,
+                    fecha_estado: editingExpediente?.fecha_estado || null,
                     activo: expediente.activo !== undefined ? expediente.activo : editingExpediente?.activo,
                 }),
             });
@@ -124,48 +126,59 @@ const RegistroExpediente = () => {
             <h2 className="text-2xl font-bold text-blue-800 mb-6">Gestión de Expedientes</h2>
             <button
                 onClick={() => navigate('/expediente-form')}
-                className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 mb-4"
+                className="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 mb-4 flex items-center gap-2"
             >
+                <PlusIcon className="h-5 w-5" />
                 Agregar Expediente
             </button>
-            <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr className="bg-gray-100">
-                        <th className="border border-gray-300 px-4 py-2">Código</th>
-                        <th className="border border-gray-300 px-4 py-2">Descripción</th>
-                        <th className="border border-gray-300 px-4 py-2">Estado</th>
-                        <th className="border border-gray-300 px-4 py-2">Activo</th>
-                        <th className="border border-gray-300 px-4 py-2">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {expedientes.map((expediente) => (
-                        <tr key={expediente.id}>
-                            <td className="border border-gray-300 px-4 py-2">{expediente.codigo}</td>
-                            <td className="border border-gray-300 px-4 py-2">{expediente.descripcion}</td>
-                            <td className="border border-gray-300 px-4 py-2">{expediente.estado}</td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">
-                                <input
-                                    type="checkbox"
-                                    checked={expediente.activo}
-                                    onChange={() => handleToggleActivo(expediente.id)}
-                                />
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2 text-center">
-                                <button
-                                    onClick={() => expediente.activo && openModal(expediente)}
-                                    className={`bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2 ${!expediente.activo ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    disabled={!expediente.activo}
-                                    title={expediente.activo ? '' : 'Para editar, el registro debe estar activo'}
-                                >
-                                    Editar
-                                </button>
-                            </td>
+            {expedientes.length === 0 ? (
+                <div className="text-center text-gray-600 mt-4">No existen registros de expedientes.</div>
+            ) : (
+                <table className="w-full border-collapse border border-gray-300 text-sm text-left">
+                    <thead>
+                        <tr className="bg-gray-200 text-gray-700">
+                            <th className="border border-gray-300 px-4 py-2">Código</th>
+                            <th className="border border-gray-300 px-4 py-2">Descripción</th>
+                            <th className="border border-gray-300 px-4 py-2">Estado</th>
+                            <th className="border border-gray-300 px-4 py-2">Activo</th>
+                            <th className="border border-gray-300 px-4 py-2">Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-
+                    </thead>
+                    <tbody>
+                        {expedientes.map((expediente, index) => (
+                            <tr
+                                key={expediente.id}
+                                className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                                    } hover:bg-gray-100`}
+                            >
+                                <td className="border border-gray-300 px-4 py-2">{expediente.codigo}</td>
+                                <td className="border border-gray-300 px-4 py-2">{expediente.descripcion}</td>
+                                <td className="border border-gray-300 px-4 py-2">{expediente.estado}</td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={expediente.activo}
+                                        onChange={() => handleToggleActivo(expediente.id)}
+                                        className="cursor-pointer"
+                                    />
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2 text-center">
+                                    <button
+                                        onClick={() => expediente.activo && openModal(expediente)}
+                                        className={`bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 mr-2 flex items-center gap-2 ${!expediente.activo ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                        disabled={!expediente.activo}
+                                        title={expediente.activo ? '' : 'Para editar, el registro debe estar activo'}
+                                    >
+                                        <PencilIcon className="h-5 w-5" />
+                                        Editar
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
             {modalOpen && (
                 <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-md w-full max-w-md">
