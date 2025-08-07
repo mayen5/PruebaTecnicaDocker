@@ -53,13 +53,15 @@ export const login = async (req: Request, res: Response) => {
                 if (
                     typeof decoded === 'object' &&
                     decoded?.username === user.username &&
-                    decoded?.rol === user.rol
+                    decoded?.rol === user.rol &&
+                    decoded?.id === String(user.id ?? '')
                 ) {
                     return res.status(200).json({
                         statusCode: 200,
                         status: 'OK',
                         message: 'Ya existe una sesión activa',
                         user: {
+                            id: user.id,
                             username: user.username,
                             rol: user.rol,
                         },
@@ -68,17 +70,17 @@ export const login = async (req: Request, res: Response) => {
                 }
             } catch (err) {
                 console.warn('Token inválido o expirado:', err);
-                // Continuará generando uno nuevo
             }
         }
 
-        const newToken = generateToken({ username: user.username, rol: user.rol });
+        const newToken = generateToken({ username: user.username, rol: user.rol, id: String(user.id ?? '') });
 
         return res.status(200).json({
             statusCode: 200,
             status: 'OK',
             message: 'Inicio de sesión exitoso',
             user: {
+                id: user.id,
                 username: user.username,
                 rol: user.rol,
             },

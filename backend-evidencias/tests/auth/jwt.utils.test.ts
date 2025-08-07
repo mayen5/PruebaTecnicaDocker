@@ -2,7 +2,7 @@ import * as jwtUtils from '../../src/auth/jwt.utils';
 import type { Rol } from '../../src/auth/auth.types';
 
 describe('JWT Utils', () => {
-    const payload = { username: 'usuario', rol: 'tecnico' as Rol };
+    const payload = { username: 'usuario', rol: 'tecnico' as Rol, id: '12345' };
 
     const originalSecret = process.env.JWT_SECRET;
 

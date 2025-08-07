@@ -93,6 +93,8 @@ describe('Auth Controller', () => {
             (usuarioModel.getUserByUsername as jest.Mock).mockResolvedValue({ username: 'user', password_hash: 'hash', activo: true, rol: 'admin' });
             (bcrypt.compare as jest.Mock).mockResolvedValue(true);
             (jwtUtils.verifyToken as jest.Mock).mockReturnValue({ username: 'user', rol: 'admin' });
+            // Ajusta el mock para que generateToken NO se llame y el token sea el existente
+            (jwtUtils.generateToken as jest.Mock).mockReturnValue('existing-token');
             await authController.login(req, res);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({

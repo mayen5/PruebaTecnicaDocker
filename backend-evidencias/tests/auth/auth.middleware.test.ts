@@ -4,7 +4,7 @@ import { generateToken } from '../../src/auth/jwt.utils';
 import type { Rol } from '../../src/auth/auth.types';
 
 describe('Middleware authenticateJWT', () => {
-    const payload = { id: 1, username: 'test', rol: 'tecnico' as Rol };
+    const payload = { id: '1', username: 'test', rol: 'tecnico' as Rol };
     const token = generateToken(payload);
 
     interface MockRequest extends Request {

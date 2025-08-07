@@ -1,23 +1,16 @@
-# Imagen base oficial de Node.js
-FROM node:18
+FROM node:22-alpine
 
-# Crear carpeta de trabajo
 WORKDIR /app
 
-# Copiar package.json y lock (si existe)
 COPY package*.json ./
 
-# Instalar dependencias
 RUN npm install
 
-# Copiar el resto del código
+# Copiamos el resto del código
 COPY . .
 
-# Compilar el proyecto TypeScript
-RUN npm run build
-
-# Exponer puerto de la API
+# Exponer puerto
 EXPOSE 3001
 
-# Comando de inicio
-CMD ["npm", "start"]
+# Usar nodemon en desarrollo
+CMD ["npx", "nodemon", "--watch", "src", "--exec", "ts-node", "src/server.ts"]

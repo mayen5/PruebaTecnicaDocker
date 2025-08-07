@@ -164,6 +164,6 @@ router.put('/activardesactivar/:username', authorizeRoles('coordinador'), update
  *       403:
  *         description: No autorizado
  */
-router.get('/:username', authorizeRoles('coordinador'), getUserByUsernameHandler);
+router.get('/:username', authorizeRoles('coordinador', 'tecnico'), getUserByUsernameHandler);
 
 export default router;

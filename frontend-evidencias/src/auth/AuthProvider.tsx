@@ -10,6 +10,7 @@ const AuthProvider = ({ children }: Props) => {
     const [ token, setToken ] = useState<string | null>(localStorage.getItem('token'));
     const [ rol, setRol ] = useState<Rol | null>(localStorage.getItem('rol') as Rol | null);
     const [ username, setUsername ] = useState<string | null>(localStorage.getItem('username'));
+    const [ id, setId ] = useState<string | null>(localStorage.getItem('id'));
 
     const isAuthenticated = !!token;
 
@@ -19,7 +20,7 @@ const AuthProvider = ({ children }: Props) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username, password, id }),
         });
 
         if (!response.ok) {
@@ -32,20 +33,24 @@ const AuthProvider = ({ children }: Props) => {
         setToken(data.token);
         setRol(data.user.rol);
         setUsername(data.user.username);
+        setId(data.user.id);
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('rol', data.user.rol);
         localStorage.setItem('username', data.user.username);
+        localStorage.setItem('id', data.user.id);
     };
 
     const logout = (): void => {
         setToken(null);
         setRol(null);
         setUsername(null);
+        setId(null);
 
         localStorage.removeItem('token');
         localStorage.removeItem('rol');
         localStorage.removeItem('username');
+        localStorage.removeItem('id');
     };
 
     return (
@@ -55,6 +60,7 @@ const AuthProvider = ({ children }: Props) => {
                 token,
                 rol,
                 username,
+                id,
                 login,
                 logout,
             }}

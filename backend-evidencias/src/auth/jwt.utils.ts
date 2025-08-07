@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Rol } from './auth.types';
 
 export interface TokenPayload {
+    id: string;
     username: string;
     rol: Rol;
 }

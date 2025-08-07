@@ -27,8 +27,15 @@ services:
       - evidencias_net
 
   backend:
-    build: ./backend-evidencias
+    build:
+      context: ./backend-evidencias
+      dockerfile: Dockerfile
     container_name: api-evidencias
+    volumes:
+      - ./backend-evidencias:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
     environment:
       - PORT=3001
       - DB_HOST=db
@@ -36,8 +43,6 @@ services:
       - DB_PASSWORD=Db@dm1n2025
       - DB_NAME=evidencias_db
       - DB_PORT=1433
-    ports:
-      - "3001:3001"
     depends_on:
       - db-init
     networks:
@@ -46,6 +51,9 @@ services:
   frontend:
     build: ./frontend-evidencias
     container_name: app-evidencias
+    volumes:
+      - ./frontend-evidencias:/app
+      - /app/node_modules
     ports:
       - "3000:3000"
     depends_on:

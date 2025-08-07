@@ -12,7 +12,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/auth/login:
+ * /auth/login:
  *   post:
  *     summary: Iniciar sesión
  *     tags: [Auth]
@@ -52,6 +52,8 @@ const router = Router();
  *                   type: string
  *                 username:
  *                   type: string
+ *                 id:
+ *                   type: string
  *       401:
  *         description: Credenciales incorrectas
  */
@@ -59,7 +61,7 @@ router.post('/login', login);
 
 /**
  * @swagger
- * /api/auth/logout:
+ * /auth/logout:
  *   post:
  *     summary: Cerrar sesión
  *     tags: [Auth]
