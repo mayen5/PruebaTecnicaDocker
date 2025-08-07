@@ -99,3 +99,18 @@ export const updateIndicioActivoByIdHandler = async (req: Request, res: Response
         res.status(500).json({ message: errorMsg });
     }
 };
+
+// GET /indicios/expediente/:expediente_id
+export const getIndiciosByExpedienteIdHandler = async (req: Request, res: Response) => {
+    try {
+        const { expediente_id } = req.params;
+        if (!expediente_id || isNaN(Number(expediente_id))) {
+            return res.status(400).json({ message: 'expediente_id debe ser un número válido.' });
+        }
+        const indicios = await indicioModel.getIndiciosByExpedienteId(Number(expediente_id));
+        res.status(200).json(indicios);
+    } catch (error) {
+        console.error('Error al obtener indicios por expediente:', error);
+        res.status(500).json({ message: 'Error al obtener indicios por expediente' });
+    }
+};

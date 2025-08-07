@@ -718,3 +718,43 @@ BEGIN
     END CATCH
 END;
 GO
+
+-- =============================================
+-- Nombre:          SP_GET_IndiciosByExpedienteId
+-- Descripción:     Devuelve todos los indicios activos asociados a un expediente.
+-- Autor:           Carmelo Mayén
+-- Fecha creación:  2025-08-06
+-- Versión:         1.0
+-- Notas:           Filtra por expediente_id y activo = 1.
+-- =============================================
+
+IF OBJECT_ID('SP_GET_IndiciosByExpedienteId', 'P') IS NOT NULL
+    DROP PROCEDURE SP_GET_IndiciosByExpedienteId;
+GO
+CREATE PROCEDURE SP_GET_IndiciosByExpedienteId
+    @expediente_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            id,
+            expediente_id,
+            descripcion,
+            color,
+            tamano,
+            peso,
+            ubicacion,
+            tecnico_id,
+            fecha_registro,
+            activo
+        FROM Indicios
+        WHERE expediente_id = @expediente_id AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Error en SP_GET_IndiciosByExpedienteId: %s', 16, 1, @ErrorMessage);
+    END CATCH
+END;
+GO

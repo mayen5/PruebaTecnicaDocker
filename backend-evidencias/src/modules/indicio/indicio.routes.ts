@@ -4,7 +4,8 @@ import {
     getIndicioByIdHandler,
     createIndicioHandler,
     updateIndicioByIdHandler,
-    updateIndicioActivoByIdHandler
+    updateIndicioActivoByIdHandler,
+    getIndiciosByExpedienteIdHandler
 } from './controllers/indicio.controller';
 import { authenticateJWT } from '../../auth/auth.middleware';
 import { requireRole } from '../../auth/role.middleware';
@@ -147,5 +148,31 @@ router.put('/:id', authenticateJWT, requireRole([ 'tecnico', 'coordinador' ]), u
  *         description: Eliminado lógicamente
  */
 router.put('/activardesactivar/:id', authenticateJWT, requireRole([ 'tecnico', 'coordinador' ]), updateIndicioActivoByIdHandler);
+
+/**
+ * @swagger
+ * /indicios/expediente/{expediente_id}:
+ *   get:
+ *     summary: Obtener todos los indicios de un expediente
+ *     tags: [Indicios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: expediente_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del expediente
+ *     responses:
+ *       200:
+ *         description: Lista de indicios del expediente
+ */
+router.get(
+    '/expediente/:expediente_id',
+    authenticateJWT,
+    requireRole([ 'tecnico', 'coordinador' ]),
+    getIndiciosByExpedienteIdHandler
+);
 
 export default router;

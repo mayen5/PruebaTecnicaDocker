@@ -1,4 +1,3 @@
-
 import { getConnection } from '../../../db';
 
 export interface Indicio {
@@ -73,4 +72,12 @@ export const updateIndicioActivoById = async (id: number): Promise<void> => {
     await pool.request()
         .input('id', id)
         .execute('SP_Update_IndicioActivoById');
+};
+
+export const getIndiciosByExpedienteId = async (expediente_id: number): Promise<Indicio[]> => {
+    const pool = await getConnection();
+    const result = await pool.request()
+        .input('expediente_id', expediente_id)
+        .execute('SP_GET_IndiciosByExpedienteId');
+    return result.recordset;
 };
