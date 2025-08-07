@@ -36,22 +36,26 @@ const Navbar = () => {
                 <ul className="hidden md:flex gap-4 text-sm items-center">
                     <li><Link to="/" className="px-3 py-2 rounded hover:bg-blue-700">Inicio</Link></li>
 
-                    {isAuthenticated && (
+                    {isAuthenticated && rol !== 'coordinador' && (
                         <>
                             <li><Link to="/expediente" className="px-3 py-2 rounded hover:bg-blue-700">Registro de Expedientes</Link></li>
                             <li><Link to="/indicio" className="px-3 py-2 rounded hover:bg-blue-700">Registro de Indicios</Link></li>
-                            {rol === 'coordinador' && (
-                                <li><Link to="/revisar" className="px-3 py-2 rounded hover:bg-blue-700">Revisar Expedientes</Link></li>
-                            )}
-                            <li>
-                                <button
-                                    onClick={handleLogout}
-                                    className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded text-white"
-                                >
-                                    Cerrar sesión
-                                </button>
-                            </li>
                         </>
+                    )}
+
+                    {isAuthenticated && rol === 'coordinador' && (
+                        <li><Link to="/revisar" className="px-3 py-2 rounded hover:bg-blue-700">Revisar Expedientes</Link></li>
+                    )}
+
+                    {isAuthenticated && (
+                        <li>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded text-white"
+                            >
+                                Cerrar sesión
+                            </button>
+                        </li>
                     )}
 
                     {!isAuthenticated && (
@@ -72,25 +76,29 @@ const Navbar = () => {
                 <ul className="md:hidden px-4 pb-4 text-sm space-y-2 bg-blue-700">
                     <li><Link to="/" onClick={toggleMenu} className="block py-2">Inicio</Link></li>
 
-                    {isAuthenticated && (
+                    {isAuthenticated && rol !== 'coordinador' && (
                         <>
                             <li><Link to="/expediente" onClick={toggleMenu} className="block py-2">Registro de Expedientes</Link></li>
                             <li><Link to="/indicio" onClick={toggleMenu} className="block py-2">Registro de Indicios</Link></li>
-                            {rol === 'coordinador' && (
-                                <li><Link to="/revisar" onClick={toggleMenu} className="block py-2">Revisar Expedientes</Link></li>
-                            )}
-                            <li>
-                                <button
-                                    onClick={() => {
-                                        toggleMenu();
-                                        handleLogout();
-                                    }}
-                                    className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
-                                >
-                                    Cerrar sesión
-                                </button>
-                            </li>
                         </>
+                    )}
+
+                    {isAuthenticated && rol === 'coordinador' && (
+                        <li><Link to="/revisar" onClick={toggleMenu} className="block py-2">Revisar Expedientes</Link></li>
+                    )}
+
+                    {isAuthenticated && (
+                        <li>
+                            <button
+                                onClick={() => {
+                                    toggleMenu();
+                                    handleLogout();
+                                }}
+                                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                            >
+                                Cerrar sesión
+                            </button>
+                        </li>
                     )}
 
                     {!isAuthenticated && (

@@ -16,8 +16,9 @@ interface Expediente {
     codigo: string;
     fecha_registro: string;
     tecnico_username: string;
-    tecnico_id: number; // Nuevo campo para mantener el técnico original
+    tecnico_id: number;
     estado: 'pendiente' | 'aprobado' | 'rechazado';
+    descripcion?: string | null;
     justificacion?: string;
     aprobador_id?: number | null;
     aprobador_username?: string | null;
@@ -87,9 +88,9 @@ const RevisarExpedientes = () => {
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    ...expediente,
                     estado: 'aprobado',
                     justificacion: '',
-                    tecnico_id: expediente.tecnico_id,
                     aprobador_id: userId
                 })
             });
@@ -130,9 +131,9 @@ const RevisarExpedientes = () => {
                         Authorization: `Bearer ${token}`
                     },
                     body: JSON.stringify({
+                        ...expediente,
                         estado: 'rechazado',
                         justificacion: rechazoJustificacion,
-                        tecnico_id: expediente.tecnico_id,
                         aprobador_id: userId
                     })
                 });
@@ -157,6 +158,13 @@ const RevisarExpedientes = () => {
             setExpedienteRechazando(null);
             setRechazoJustificacion('');
         }
+    };
+
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     };
 
     if (loading) {
@@ -187,8 +195,11 @@ const RevisarExpedientes = () => {
                     <h3 className="text-xl font-semibold mb-2 text-gray-800">
                         Expediente: {expediente.codigo}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-1">Fecha de registro: {expediente.fecha_registro}</p>
+                    <p className="text-sm text-gray-600 mb-1">Fecha de registro: {formatDate(expediente.fecha_registro)}</p>
                     <p className="text-sm text-gray-600 mb-1">Técnico: {expediente.tecnico_username}</p>
+                    {expediente.descripcion && (
+                        <p className="text-sm text-gray-600 mb-1">Descripción: {expediente.descripcion}</p>
+                    )}
                     {expediente.aprobador_username && (
                         <p className="text-sm text-gray-600 mb-1">
                             Aprobador: {expediente.aprobador_username}
@@ -196,7 +207,7 @@ const RevisarExpedientes = () => {
                     )}
                     {expediente.fecha_estado && (
                         <p className="text-sm text-gray-600 mb-1">
-                            Fecha cambio estado: {new Date(expediente.fecha_estado).toLocaleString()}
+                            Fecha cambio estado: {formatDate(expediente.fecha_estado)}
                         </p>
                     )}
 

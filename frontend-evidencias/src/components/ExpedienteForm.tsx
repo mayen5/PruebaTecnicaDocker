@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../auth/useAuth';
 
 const ExpedienteForm = () => {
     const { token, username, id } = useAuth();
+    const navigate = useNavigate();
 
     const [ expediente, setExpediente ] = useState({
         codigo: '',
@@ -47,7 +49,8 @@ const ExpedienteForm = () => {
                 throw new Error(data.message || 'Error al registrar expediente');
             }
 
-            setFeedback({ type: 'success', message: 'Expediente registrado correctamente' });
+            alert('Expediente registrado correctamente.');
+            navigate('/expediente');
 
             setExpediente({
                 codigo: '',
@@ -73,85 +76,93 @@ const ExpedienteForm = () => {
     }, [ feedback ]);
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 bg-white shadow-md rounded-md mt-8">
-            <h2 className="text-2xl font-semibold mb-4 text-blue-800">Registrar Expediente</h2>
-
-            {feedback && (
-                <p className={`mb-4 ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {feedback.message}
-                </p>
-            )}
-
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Código de expediente</label>
-                <input
-                    type="text"
-                    name="codigo"
-                    value={expediente.codigo}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
-                />
-            </div>
-
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Descripción</label>
-                <textarea
-                    name="descripcion"
-                    value={expediente.descripcion}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 px-3 py-2 rounded-md"
-                    rows={3}
-                />
-            </div>
-
-            {/* Campos predeterminados/automáticos solo visuales */}
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Fecha de registro (automática)</label>
-                <input
-                    type="text"
-                    value={new Date().toLocaleDateString()}
-                    readOnly
-                    className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Estado (predeterminado)</label>
-                <input
-                    type="text"
-                    value="pendiente"
-                    readOnly
-                    className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block font-medium text-gray-700">Activo (predeterminado)</label>
-                <input
-                    type="text"
-                    value="Sí"
-                    readOnly
-                    className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-
-            <div className="mb-6">
-                <label className="block font-medium text-gray-700">Técnico que registra</label>
-                <input
-                    type="text"
-                    value={username || ''}
-                    readOnly
-                    className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
-                />
-            </div>
-
+        <div>
             <button
-                type="submit"
-                className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition-all"
+                onClick={() => navigate('/registro-expediente')}
+                className="bg-gray-200 text-blue-700 px-4 py-2 rounded hover:bg-gray-300 transition-all mb-4"
             >
-                Guardar Expediente
+                ← Volver a Registro de Expedientes
             </button>
-        </form>
+            <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-6 bg-white shadow-md rounded-md mt-8">
+                <h2 className="text-2xl font-semibold mb-4 text-blue-800">Registrar Expediente</h2>
+
+                {feedback && (
+                    <p className={`mb-4 ${feedback.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                        {feedback.message}
+                    </p>
+                )}
+
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Código de expediente</label>
+                    <input
+                        type="text"
+                        name="codigo"
+                        value={expediente.codigo}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+                    />
+                </div>
+
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Descripción</label>
+                    <textarea
+                        name="descripcion"
+                        value={expediente.descripcion}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 px-3 py-2 rounded-md"
+                        rows={3}
+                    />
+                </div>
+
+                {/* Campos predeterminados/automáticos solo visuales */}
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Fecha de registro (automática)</label>
+                    <input
+                        type="text"
+                        value={new Date().toLocaleDateString()}
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Estado (predeterminado)</label>
+                    <input
+                        type="text"
+                        value="pendiente"
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block font-medium text-gray-700">Activo (predeterminado)</label>
+                    <input
+                        type="text"
+                        value="Sí"
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+
+                <div className="mb-6">
+                    <label className="block font-medium text-gray-700">Técnico que registra</label>
+                    <input
+                        type="text"
+                        value={username || ''}
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-300 px-3 py-2 rounded-md"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition-all"
+                >
+                    Guardar Expediente
+                </button>
+            </form>
+        </div>
     );
 };
 

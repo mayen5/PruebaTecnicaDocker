@@ -7,6 +7,7 @@ import PrivateRoute from './PrivateRoute';
 import RoleRoute from './RoleRoute';
 import Login from '../pages/Login';
 import useAuth from '../auth/useAuth';
+import ExpedienteForm from '../components/ExpedienteForm';
 
 const AppRoutes = () => {
     const { isAuthenticated } = useAuth();
@@ -28,6 +29,16 @@ const AppRoutes = () => {
                     <PrivateRoute>
                         <RoleRoute allowedRoles={[ 'tecnico' ]}>
                             <RegistroExpediente />
+                        </RoleRoute>
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/expediente-form"
+                element={
+                    <PrivateRoute>
+                        <RoleRoute allowedRoles={[ 'tecnico' ]}>
+                            <ExpedienteForm />
                         </RoleRoute>
                     </PrivateRoute>
                 }

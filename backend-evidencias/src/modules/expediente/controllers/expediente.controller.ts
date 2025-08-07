@@ -31,12 +31,16 @@ export const getExpedienteByIdHandler = async (req: Request, res: Response) => {
 // POST /expedientes
 export const createExpedienteHandler = async (req: Request, res: Response) => {
     try {
-        const { codigo, descripcion, tecnico_id, justificacion } = req.body;
+        const { codigo, descripcion, tecnico_id, justificacion, estado, aprobador_id, fecha_estado, activo } = req.body;
         await expedienteModel.insertExpediente({
             codigo,
             descripcion,
             tecnico_id,
-            justificacion
+            justificacion,
+            estado,
+            aprobador_id,
+            fecha_estado,
+            activo,
         });
         res.status(201).json({ message: 'Expediente creado exitosamente' });
     } catch (error: any) {
@@ -50,14 +54,17 @@ export const createExpedienteHandler = async (req: Request, res: Response) => {
 export const updateExpedienteByIdHandler = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { descripcion, estado, justificacion, tecnico_id, aprobador_id } = req.body;
+        const { codigo, descripcion, estado, justificacion, tecnico_id, aprobador_id, fecha_estado, activo } = req.body;
         await expedienteModel.updateExpedienteById({
             id: Number(id),
+            codigo,
             descripcion,
             estado,
             justificacion,
             tecnico_id,
-            aprobador_id
+            aprobador_id,
+            fecha_estado,
+            activo,
         });
         res.status(200).json({ message: 'Expediente actualizado exitosamente' });
     } catch (error: any) {
