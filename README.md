@@ -68,6 +68,8 @@ Abre tu navegador en:
 
 🔗 [http://localhost:3000](http://localhost:3000)
 
+🔗 Documentación de la API (Swagger): [http://localhost:3001/api/docs/](http://localhost:3001/api/docs/)
+
 ## 📦 Variables de entorno
 
 Las variables de entorno ya están definidas en `docker-compose.yml`:
